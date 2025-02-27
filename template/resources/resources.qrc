@@ -1,0 +1,44 @@
+<RCC>
+    <qresource prefix="/assets">
+        <file>sprite.png</file>
+        <file>block.png</file>
+        <file>Background.png</file>
+        <file>map.txt</file>
+        <file>bomb1.png</file>
+        <file>bomb2.png</file>
+        <file>bomb3.png</file>
+        <file>center_exp1.png</file>
+        <file>left_exp1.png</file>
+        <file>center_exp2.png</file>
+        <file>down_exp1.png</file>
+        <file>down_exp2.png</file>
+        <file>left_exp2.png</file>
+        <file>right_exp1.png</file>
+        <file>right_exp2.png</file>
+        <file>x_exp1.png</file>
+        <file>x_exp2.png</file>
+        <file>y_exp1.png</file>
+        <file>y_exp2.png</file>
+        <file>up_exp1.png</file>
+        <file>up_exp2.png</file>
+        <file>breakable_block.png</file>
+        <file>breakable_block1.png</file>
+        <file>breakable_block2.png</file>
+        <file>breakable_block3.png</file>
+        <file>player_down1.png</file>
+        <file>player_down2.png</file>
+        <file>player_down3.png</file>
+        <file>player_dead1.png</file>
+        <file>player_dead2.png</file>
+        <file>player_dead3.png</file>
+        <file>player_left1.png</file>
+        <file>player_left2.png</file>
+        <file>player_left3.png</file>
+        <file>player_right1.png</file>
+        <file>player_right2.png</file>
+        <file>player_right3.png</file>
+        <file>player_up1.png</file>
+        <file>player_up2.png</file>
+        <file>player_up3.png</file>
+    </qresource>
+</RCC>
