@@ -15,8 +15,11 @@ SOURCES += \
     src/hud.cpp \
     src/main.cpp \
     src/maploader.cpp \
+    src/networkmanager.cpp \
     src/player.cpp \
-    src/settingsdialog.cpp
+    src/settingsdialog.cpp \
+    src/tcpmanager.cpp \
+    src/udpmanager.cpp
 
 # Header files
 HEADERS += \
@@ -31,7 +34,10 @@ HEADERS += \
     include/hud.h \
     include/maploader.h \
     include/player.h \
-    include/settingsdialog.h
+    include/settingsdialog.h \
+    src/networkmanager.h \
+    src/tcpmanager.h \
+    src/udpmanager.h
 
 # Resource file
 RESOURCES += \
