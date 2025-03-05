@@ -1,4 +1,4 @@
-#include "udpmanager.h"
+#include "../include/udpmanager.h"
 
 UDPManager::UDPManager(QObject* parent) : NetworkManager(parent),
                                           m_socket(nullptr),

@@ -1,4 +1,4 @@
-#include "tcpmanager.h"
+#include "../include/tcpmanager.h"
 
 TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
                                           m_server(nullptr),

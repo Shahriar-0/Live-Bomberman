@@ -1,4 +1,6 @@
 QT       += core gui widgets
+QT       += network
+
 
 CONFIG   += c++17
 
@@ -35,9 +37,9 @@ HEADERS += \
     include/maploader.h \
     include/player.h \
     include/settingsdialog.h \
-    src/networkmanager.h \
-    src/tcpmanager.h \
-    src/udpmanager.h
+    include/networkmanager.h \
+    include/tcpmanager.h \
+    include/udpmanager.h
 
 # Resource file
 RESOURCES += \
