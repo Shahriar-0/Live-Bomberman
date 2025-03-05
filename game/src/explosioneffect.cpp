@@ -1,9 +1,8 @@
 #include "../include/explosioneffect.h"
 
-ExplosionEffect::ExplosionEffect(const QPointF &position, ExplosionType type, QGraphicsItem *parent)
+ExplosionEffect::ExplosionEffect(const QPointF& position, ExplosionType type, QGraphicsItem* parent)
     : GameObject(QPixmap(), parent),
-    m_type(type)
-{
+      m_type(type) {
     setPos(position);
     setupExplosionAnimation();
     QTimer::singleShot(EffectRemovalDelayMs, this, &ExplosionEffect::removeEffect);
@@ -11,7 +10,7 @@ ExplosionEffect::ExplosionEffect(const QPointF &position, ExplosionType type, QG
 
 void ExplosionEffect::setupExplosionAnimation() {
     QString framePath = getFramePathForType(m_type);
-    Animation *expAnim = new Animation("exp", Animation::loadFrames(framePath, FrameCount), FrameDurationMs, this);
+    Animation* expAnim = new Animation("exp", Animation::loadFrames(framePath, FrameCount), FrameDurationMs, this);
     addAnimation(expAnim);
     playAnimation("exp");
 }

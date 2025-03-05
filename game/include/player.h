@@ -1,23 +1,22 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <QDebug>
+#include <QGraphicsColorizeEffect>
+#include <QGraphicsScene>
+#include <QKeyEvent>
+#include <QTimer>
+#include <cmath>
+
+#include "animation.h"
 #include "block.h"
 #include "bomb.h"
-#include "animation.h"
 #include "gameobject.h"
 
-#include <QKeyEvent>
-#include <QGraphicsColorizeEffect>
-#include <QTimer>
-#include <QDebug>
-#include <cmath>
-#include <QGraphicsScene>
-
-class Player : public GameObject
-{
+class Player : public GameObject {
     Q_OBJECT
 public:
-    explicit Player(const QPixmap &sprite, int playerId, QGraphicsItem *parent = nullptr);
+    explicit Player(const QPixmap& sprite, int playerId, QGraphicsItem* parent = nullptr);
     void takeDamage(int damage);
     int getHealth() const { return m_health; }
     int getPlayerId() const { return m_playerId; }
@@ -26,8 +25,8 @@ public slots:
     void updateMovement();
 
 protected:
-    void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
     void die();
 
 private:

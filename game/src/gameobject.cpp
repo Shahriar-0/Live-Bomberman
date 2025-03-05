@@ -1,20 +1,19 @@
 #include "../include/gameobject.h"
 
-GameObject::GameObject(const QPixmap &sprite, QGraphicsItem *parent)
-    : QObject(), QGraphicsPixmapItem(sprite, parent), m_currentAnimation(nullptr)
-{
+GameObject::GameObject(const QPixmap& sprite, QGraphicsItem* parent)
+    : QObject(), QGraphicsPixmapItem(sprite, parent), m_currentAnimation(nullptr) {
     setFlag(QGraphicsItem::ItemIsFocusable, false);
 }
 
-void GameObject::addAnimation(Animation *animation)
-{
-    if (!animation) return;
+void GameObject::addAnimation(Animation* animation) {
+    if (!animation) {
+        return;
+    }
     m_animations.insert(animation->getName(), animation);
     connect(animation, &Animation::frameChanged, this, &GameObject::updateFrame);
 }
 
-void GameObject::playAnimation(const QString &name)
-{
+void GameObject::playAnimation(const QString& name) {
     auto it = m_animations.find(name);
     if (it == m_animations.end()) {
         qWarning() << "Animation" << name << "not found!";
@@ -35,16 +34,14 @@ void GameObject::playAnimation(const QString &name)
     setPixmap(m_currentAnimation->currentFrame());
 }
 
-void GameObject::stopAnimation()
-{
+void GameObject::stopAnimation() {
     if (m_currentAnimation) {
         m_currentAnimation->stop();
         m_currentAnimation = nullptr;
     }
 }
 
-void GameObject::updateFrame()
-{
+void GameObject::updateFrame() {
     if (m_currentAnimation) {
         setPixmap(m_currentAnimation->currentFrame());
     }

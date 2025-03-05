@@ -1,10 +1,11 @@
 #ifndef EXPLOSIONEFFECT_H
 #define EXPLOSIONEFFECT_H
 
-#include "gameobject.h"
-#include "animation.h"
 #include <QPixmap>
 #include <QTimer>
+
+#include "animation.h"
+#include "gameobject.h"
 
 enum ExplosionType {
     Center,
@@ -22,7 +23,7 @@ class ExplosionEffect : public GameObject {
     Q_OBJECT
 
 public:
-    explicit ExplosionEffect(const QPointF &position, ExplosionType type, QGraphicsItem *parent = nullptr);
+    explicit ExplosionEffect(const QPointF& position, ExplosionType type, QGraphicsItem* parent = nullptr);
 
 private slots:
     void removeEffect();

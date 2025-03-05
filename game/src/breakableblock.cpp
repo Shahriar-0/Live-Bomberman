@@ -1,15 +1,14 @@
 #include "../include/breakableblock.h"
 
-BreakableBlock::BreakableBlock(QGraphicsItem *parent)
-    : Block(parent)
-{
+BreakableBlock::BreakableBlock(QGraphicsItem* parent)
+    : Block(parent) {
     setupBlock();
 }
 
 void BreakableBlock::setupBlock() {
     setPixmap(QPixmap(":/assets/breakable_block.png"));
     QList<QPixmap> breakFrames = Animation::loadFrames(":/assets/breakable_block%1.png", FrameCount);
-    Animation *breakAnimation = new Animation("break", breakFrames, FrameDurationMs, this);
+    Animation* breakAnimation = new Animation("break", breakFrames, FrameDurationMs, this);
     addAnimation(breakAnimation);
 }
 

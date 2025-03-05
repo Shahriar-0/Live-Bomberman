@@ -1,19 +1,19 @@
 #ifndef BREAKABLEBLOCK_H
 #define BREAKABLEBLOCK_H
 
-#include "block.h"
-#include "animation.h"
-
-#include <QTimer>
-#include <QPixmap>
 #include <QDebug>
 #include <QGraphicsScene>
+#include <QPixmap>
+#include <QTimer>
+
+#include "animation.h"
+#include "block.h"
 
 class BreakableBlock : public Block {
     Q_OBJECT
 
 public:
-    explicit BreakableBlock(QGraphicsItem *parent = nullptr);
+    explicit BreakableBlock(QGraphicsItem* parent = nullptr);
 
 public slots:
     void destroyBlock();

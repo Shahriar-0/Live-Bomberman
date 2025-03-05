@@ -1,13 +1,12 @@
 #include "../include/game.h"
 
-Game::Game(int selectedPlayer, const QString &protocol, QObject *parent)
+Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     : QObject(parent),
-    m_gameView(new GameView(this)),
-    gameTimer(new QTimer(this)),
-    mapLoader(new MapLoader()),
-    selectedPlayer(selectedPlayer),
-    protocol(protocol)
-{
+      m_gameView(new GameView(this)),
+      gameTimer(new QTimer(this)),
+      mapLoader(new MapLoader()),
+      selectedPlayer(selectedPlayer),
+      protocol(protocol) {
     qDebug() << "Game started with selected player:" << selectedPlayer << "and protocol:" << protocol;
     m_gameView->initialize();
 
@@ -30,14 +29,19 @@ void Game::start() {
 }
 
 void Game::loadMap() {
-    if (!mapLoader->loadMap(":/assets/map.txt", m_gameView->scene(),
-                            m_gameView->view()->size(), 31, 13, this)) {
+    if (!mapLoader->loadMap(
+            ":/assets/map.txt",
+            m_gameView->scene(),
+            m_gameView->view()->size(),
+            31,
+            13,
+            this)) {
         qDebug() << "Map loading failed!";
     }
 }
 
 void Game::setFocusOnPlayer() {
-    Player *focusPlayer = nullptr;
+    Player* focusPlayer = nullptr;
     for (const QPointer<Player>& player : players) {
         if (player && player->getPlayerId() == selectedPlayer) {
             focusPlayer = player;
@@ -46,22 +50,20 @@ void Game::setFocusOnPlayer() {
     }
     if (!focusPlayer && !players.isEmpty())
         focusPlayer = players.first();
-    if (focusPlayer){
+    if (focusPlayer) {
         focusPlayer->setFlag(QGraphicsItem::ItemIsFocusable, true);
         focusPlayer->setFocus();
     }
-
 }
 
 void Game::update() {
-
     if (!(m_gameView->scene()->focusItem())) {
         setFocusOnPlayer();
     }
 
     players.removeIf([](const QPointer<Player>& player) { return player.isNull(); });
 
-    for (const auto &player : players) {
+    for (const auto& player : players) {
         if (player)
             player->updateMovement();
     }

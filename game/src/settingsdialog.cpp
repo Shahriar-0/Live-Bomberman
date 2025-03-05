@@ -1,6 +1,6 @@
 #include "../include/settingsdialog.h"
 
-SettingsDialog::SettingsDialog(QWidget *parent)
+SettingsDialog::SettingsDialog(QWidget* parent)
     : QDialog(parent), playerGroup(new QButtonGroup(this)), protocolGroup(new QButtonGroup(this)) {
     setupUi();
 }
@@ -30,8 +30,7 @@ void SettingsDialog::setupUi() {
     layout->addWidget(radioTCP);
     radioUDP->setChecked(true);
 
-    QDialogButtonBox* buttonBox = new QDialogButtonBox(
-        QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     layout->addWidget(buttonBox);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::accept);
