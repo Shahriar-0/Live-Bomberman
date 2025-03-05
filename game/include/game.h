@@ -11,6 +11,7 @@
 #include "gameview.h"
 #include "hud.h"
 #include "maploader.h"
+#include "networkmanager.h"
 #include "player.h"
 
 class QTimer;
@@ -23,7 +24,7 @@ class Game : public QObject {
 public:
     explicit Game(int selectedPlayer, const QString& protocol, QObject* parent = nullptr);
     void start();
-    QList<QPointer<Player>> players;
+    void addPlayer(Player* player);
 
 public slots:
     void update();
@@ -37,9 +38,11 @@ private:
     QTimer* gameTimer;
     MapLoader* mapLoader;
     HUD* hud;
+    NetworkManager* m_networkManager;
 
     int selectedPlayer;
     QString protocol;
+    QList<QPointer<Player>> players;
     static constexpr int FrameRate = 30;
 };
 

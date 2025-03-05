@@ -70,3 +70,7 @@ void Game::update() {
 
     hud->updateHealth(players);
 }
+
+void Game::addPlayer(Player* player) {
+    players.append(player);
+}

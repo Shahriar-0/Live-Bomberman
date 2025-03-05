@@ -40,7 +40,7 @@ void MapLoader::parseMapLine(const QString& line, int row, qreal cellSize, QGrap
             player->setPos(x, y);
             scene->addItem(player);
             if (game)
-                game->players.append(player);
+                game->addPlayer(player);
             break;
         }
         case MapConstants::IGNORE_CHAR.unicode():
