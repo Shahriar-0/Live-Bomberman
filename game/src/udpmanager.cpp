@@ -47,6 +47,7 @@ void UDPManager::onReadyRead() {
         quint16 senderPort;
 
         m_socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+        qDebug() << "Data received: " << datagram;
 
         QJsonDocument doc = QJsonDocument::fromJson(datagram);
         if (!doc.isNull() && doc.isObject()) {
@@ -62,6 +63,7 @@ void UDPManager::sendData(const QJsonObject& data) {
 
         QHostAddress address = m_role == Server ? QHostAddress::Broadcast : QHostAddress(m_address);
         m_socket->writeDatagram(datagram, address, m_port);
+        qDebug() << "Data sent: " << datagram;
     });
 }
 

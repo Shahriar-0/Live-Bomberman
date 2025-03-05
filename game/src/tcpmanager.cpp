@@ -35,6 +35,7 @@ void TCPManager::setupServer() {
     if (!m_server->listen(QHostAddress::Any, m_port)) {
         emit errorOccurred(m_server->errorString());
     }
+    qDebug() << "Server started";
 }
 
 void TCPManager::setupClient() {
@@ -54,6 +55,7 @@ void TCPManager::onNewConnection() {
         connect(m_socket, &QTcpSocket::readyRead, this, &TCPManager::onReadyRead);
         connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
         emit connectionStatusChanged(true);
+        qDebug() << "Client connected";
     }
 }
 
@@ -64,6 +66,7 @@ void TCPManager::onReadyRead() {
 
         if (!doc.isNull() && doc.isObject()) {
             emit dataReceived(doc.object());
+            qDebug() << "Data received: " << data;
         }
     }
 }
@@ -73,6 +76,7 @@ void TCPManager::onDisconnected() {
     if (m_role == Server) {
         m_socket->deleteLater();
         m_socket = nullptr;
+        qDebug() << "Server disconnected";
     }
 }
 
@@ -81,6 +85,7 @@ void TCPManager::sendData(const QJsonObject& data) {
         if (m_socket && m_socket->state() == QAbstractSocket::ConnectedState) {
             QJsonDocument doc(data);
             m_socket->write(doc.toJson());
+            qDebug() << "Data sent: " << doc.toJson();
         }
     });
 }
