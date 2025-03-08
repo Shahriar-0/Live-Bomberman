@@ -1,5 +1,8 @@
 #include "../include/game.h"
 
+#include "../include/tcpmanager.h"
+#include "../include/udpmanager.h"
+
 Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     : QObject(parent),
       m_gameView(new GameView(this)),
@@ -14,7 +17,47 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     QSize bgSize = bgImage.size();
     hud = new HUD(m_gameView->scene(), bgSize.width());
 
+    setupNetwork();
     connectGameTimer();
+}
+
+void Game::setupNetwork() {
+    NetworkManager::Role role = (selectedPlayer == 1) ? NetworkManager::Server : NetworkManager::Client;
+    QString address = (role == NetworkManager::Server) ? QString() : "127.0.0.1";
+    quint16 port = 12345;
+
+    if (protocol == "TCP") {
+        m_networkManager = new TCPManager(this);
+        m_networkManager->initialize(role, address, port);
+        qDebug() << "TCPManager initialized";
+        connect(m_networkManager, &TCPManager::dataReceived, this, &Game::onDataReceived);
+        connect(m_networkManager, &TCPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
+    }
+    else if (protocol == "UDP") { // TODO
+        m_networkManager = new UDPManager(this);
+        m_networkManager->initialize(role, address, port);
+        qDebug() << "UDPManager initialized";
+        connect(m_networkManager, &UDPManager::dataReceived, this, &Game::onDataReceived);
+        connect(m_networkManager, &UDPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
+    }
+}
+
+void Game::onDataReceived(const QJsonObject& data) {
+    qDebug() << "Data received:" << data;
+}
+
+void Game::onConnectionStatusChanged(bool connected) {
+    if (connected) {
+        qDebug() << "Connected to peer.";
+        if (m_networkManager->role() == NetworkManager::Client) {
+            QJsonObject message;
+            message["type"] = "test";
+            message["content"] = "Hello from Player 2!";
+            m_networkManager->sendData(message);
+        }
+    } else {
+        qDebug() << "Disconnected from peer.";
+    }
 }
 
 void Game::connectGameTimer() {

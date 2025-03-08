@@ -4,9 +4,6 @@ TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
                                           m_server(nullptr),
                                           m_socket(nullptr),
                                           m_port(0) {
-    connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
-        emit errorOccurred(m_socket->errorString());
-    });
     moveToThread(&m_networkThread);
     m_networkThread.start();
 }
@@ -22,6 +19,7 @@ void TCPManager::initialize(Role role, const QString& address, quint16 port) {
     m_address = address;
     m_port = port;
 
+    qDebug() << "Trying to initialize network manager...2";
     QMetaObject::invokeMethod(this, [this]() {
         if (m_role == Server) setupServer();
         else setupClient();
@@ -30,6 +28,7 @@ void TCPManager::initialize(Role role, const QString& address, quint16 port) {
 
 void TCPManager::setupServer() {
     m_server = new QTcpServer(this);
+    qDebug() << "Server created";
     connect(m_server, &QTcpServer::newConnection, this, &TCPManager::onNewConnection);
 
     if (!m_server->listen(QHostAddress::Any, m_port)) {
@@ -52,6 +51,9 @@ void TCPManager::setupClient() {
 void TCPManager::onNewConnection() {
     if (m_role == Server && !m_socket) {
         m_socket = m_server->nextPendingConnection();
+        connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
+            emit errorOccurred(m_socket->errorString());
+        });
         connect(m_socket, &QTcpSocket::readyRead, this, &TCPManager::onReadyRead);
         connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
         emit connectionStatusChanged(true);

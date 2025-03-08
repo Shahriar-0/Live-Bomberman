@@ -28,11 +28,14 @@ public:
 
 public slots:
     void update();
+    void onDataReceived(const QJsonObject& data);
+    void onConnectionStatusChanged(bool connected);
 
 private:
     void connectGameTimer();
     void loadMap();
     void setFocusOnPlayer();
+    void setupNetwork();
 
     GameView* m_gameView;
     QTimer* gameTimer;
