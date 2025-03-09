@@ -29,14 +29,12 @@ void Game::setupNetwork() {
     if (protocol == "TCP") {
         m_networkManager = new TCPManager(this);
         m_networkManager->initialize(role, address, port);
-        qDebug() << "TCPManager initialized";
         connect(m_networkManager, &TCPManager::dataReceived, this, &Game::onDataReceived);
         connect(m_networkManager, &TCPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
     }
     else if (protocol == "UDP") { // TODO
         m_networkManager = new UDPManager(this);
         m_networkManager->initialize(role, address, port);
-        qDebug() << "UDPManager initialized";
         connect(m_networkManager, &UDPManager::dataReceived, this, &Game::onDataReceived);
         connect(m_networkManager, &UDPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
     }
@@ -55,7 +53,8 @@ void Game::onConnectionStatusChanged(bool connected) {
             message["content"] = "Hello from Player 2!";
             m_networkManager->sendData(message);
         }
-    } else {
+    }
+    else {
         qDebug() << "Disconnected from peer.";
     }
 }
@@ -86,9 +85,9 @@ void Game::loadMap() {
 void Game::setFocusOnPlayer() {
     Player* focusPlayer = nullptr;
     for (const QPointer<Player>& player : players) {
+        connectPlayerSignals(player);
         if (player && player->getPlayerId() == selectedPlayer) {
             focusPlayer = player;
-            break;
         }
     }
     if (!focusPlayer && !players.isEmpty())
@@ -97,6 +96,37 @@ void Game::setFocusOnPlayer() {
         focusPlayer->setFlag(QGraphicsItem::ItemIsFocusable, true);
         focusPlayer->setFocus();
     }
+}
+
+void Game::connectPlayerSignals(QPointer<Player> player) {
+    connect(player, &Player::playerDied, this, &Game::playerDied);
+    connect(player, &Player::playerMoved, this, &Game::playerMoved);
+    connect(player, &Player::playerPlacedBomb, this, &Game::playerPlacedBomb);
+}
+
+void Game::playerDied(int playerId) {
+    QJsonObject message;
+    message["type"] = "playerDied";
+    message["content"] = playerId;
+    m_networkManager->sendData(message);
+    // TODO: handle player death
+}
+
+void Game::playerMoved(int playerId, Qt::Key key) {
+    QJsonObject message;
+    message["type"] = "playerMoved";
+    message["content"] = playerId;
+    message["key"] = key;
+    m_networkManager->sendData(message);
+    // TODO: handle player movement
+}
+
+void Game::playerPlacedBomb(int playerId) {
+    QJsonObject message;
+    message["type"] = "playerPlacedBomb";
+    message["content"] = playerId;
+    m_networkManager->sendData(message);
+    // TODO: handle player bomb placement
 }
 
 void Game::update() {

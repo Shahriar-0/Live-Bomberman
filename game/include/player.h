@@ -24,6 +24,11 @@ public:
 public slots:
     void updateMovement();
 
+signals:
+    void playerDied(int playerId);
+    void playerMoved(int playerId, Qt::Key key);
+    void playerPlacedBomb(int playerId);
+
 protected:
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;

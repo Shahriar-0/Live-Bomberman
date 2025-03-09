@@ -57,6 +57,7 @@ void Player::keyPressEvent(QKeyEvent* event) {
 
     if (event->key() == Qt::Key_Space) {
         placeBomb();
+        emit playerPlacedBomb(m_playerId);
         return;
     }
 
@@ -74,13 +75,18 @@ void Player::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void Player::updateDirectionState(int key, bool isPressed) {
-    switch (key) {
+    Qt::Key qtKey = static_cast<Qt::Key>(key);
+    switch (qtKey) {
     case Qt::Key_W: m_moveUp = isPressed; break;
     case Qt::Key_S: m_moveDown = isPressed; break;
     case Qt::Key_A: m_moveLeft = isPressed; break;
     case Qt::Key_D: m_moveRight = isPressed; break;
+    default: break;
     }
     m_isMoving = m_moveUp || m_moveDown || m_moveLeft || m_moveRight;
+    if (m_isMoving) {
+        emit playerMoved(m_playerId, qtKey);
+    }
 }
 
 void Player::updateMovement() {
@@ -115,7 +121,7 @@ void Player::placeBomb() {
     if (!scene()) {
         return;
     }
-    
+
     QPointF center = pos() + boundingRect().center();
     qreal tileX = std::floor(center.x() / TILE_SIZE) * TILE_SIZE;
     qreal tileY = std::floor(center.y() / TILE_SIZE) * TILE_SIZE;

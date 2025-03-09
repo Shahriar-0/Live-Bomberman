@@ -30,12 +30,16 @@ public slots:
     void update();
     void onDataReceived(const QJsonObject& data);
     void onConnectionStatusChanged(bool connected);
+    void playerDied(int playerId);
+    void playerMoved(int playerId, Qt::Key key);
+    void playerPlacedBomb(int playerId);
 
 private:
     void connectGameTimer();
     void loadMap();
     void setFocusOnPlayer();
     void setupNetwork();
+    void connectPlayerSignals(QPointer<Player> player);
 
     GameView* m_gameView;
     QTimer* gameTimer;
