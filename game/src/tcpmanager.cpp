@@ -88,6 +88,7 @@ void TCPManager::sendData(const QJsonObject& data) {
         if (m_socket && m_socket->state() == QAbstractSocket::ConnectedState) {
             QJsonDocument doc(data);
             m_socket->write(doc.toJson());
+            m_socket->flush();
             qDebug() << "Data sent: " << doc.toJson();
         }
     });
