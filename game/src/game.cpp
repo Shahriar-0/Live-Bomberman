@@ -31,17 +31,23 @@ void Game::setupNetwork() {
         m_networkManager->initialize(role, address, port);
         connect(m_networkManager, &TCPManager::dataReceived, this, &Game::onDataReceived);
         connect(m_networkManager, &TCPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
+        connect(m_networkManager, &TCPManager::errorOccurred, this, &Game::errorOccurred);
     }
     else if (protocol == "UDP") { // TODO
         m_networkManager = new UDPManager(this);
         m_networkManager->initialize(role, address, port);
         connect(m_networkManager, &UDPManager::dataReceived, this, &Game::onDataReceived);
         connect(m_networkManager, &UDPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
+        connect(m_networkManager, &UDPManager::errorOccurred, this, &Game::errorOccurred);
     }
 }
 
 void Game::onDataReceived(const QJsonObject& data) {
     qDebug() << "Data received:" << data;
+}
+
+void Game::errorOccurred(const QString& message) {
+    qDebug() << "Error occurred:" << message;
 }
 
 void Game::onConnectionStatusChanged(bool connected) {
@@ -52,6 +58,7 @@ void Game::onConnectionStatusChanged(bool connected) {
             message["type"] = "test";
             message["content"] = "Hello from Player 2!";
             m_networkManager->sendData(message);
+            // m_networkManager->sendData(message);
         }
     }
     else {
@@ -105,6 +112,7 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 }
 
 void Game::playerDied(int playerId) {
+    qDebug() << "Player " << playerId << " died.";
     QJsonObject message;
     message["type"] = "playerDied";
     message["content"] = playerId;
@@ -113,6 +121,7 @@ void Game::playerDied(int playerId) {
 }
 
 void Game::playerMoved(int playerId, Qt::Key key) {
+    qDebug() << "Player " << playerId << " moved.";
     QJsonObject message;
     message["type"] = "playerMoved";
     message["content"] = playerId;
@@ -122,6 +131,7 @@ void Game::playerMoved(int playerId, Qt::Key key) {
 }
 
 void Game::playerPlacedBomb(int playerId) {
+    qDebug() << "Player " << playerId << " placed a bomb.";
     QJsonObject message;
     message["type"] = "playerPlacedBomb";
     message["content"] = playerId;

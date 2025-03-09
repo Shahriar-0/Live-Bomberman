@@ -33,6 +33,7 @@ public slots:
     void playerDied(int playerId);
     void playerMoved(int playerId, Qt::Key key);
     void playerPlacedBomb(int playerId);
+    void errorOccurred(const QString& message);
 
 private:
     void connectGameTimer();
