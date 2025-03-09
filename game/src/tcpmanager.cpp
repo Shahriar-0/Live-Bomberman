@@ -23,6 +23,8 @@ void TCPManager::initialize(Role role, const QString& address, quint16 port) {
         if (m_role == Server) setupServer();
         else setupClient();
     });
+
+    qDebug() << "TCPManager initialized";
 }
 
 void TCPManager::setupServer() {
@@ -67,7 +69,7 @@ void TCPManager::onReadyRead() {
 
         if (!doc.isNull() && doc.isObject()) {
             emit dataReceived(doc.object());
-            qDebug() << "Data received: " << data;
+            // qDebug() << "Data received (in TCP): " << data;
         }
     }
 }

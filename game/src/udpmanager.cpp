@@ -37,6 +37,8 @@ void UDPManager::initialize(Role role, const QString& address, quint16 port) {
             emit connectionStatusChanged(true);
         }
     });
+
+    qDebug() << "UDPManager initialized";
 }
 
 void UDPManager::onReadyRead() {
@@ -47,7 +49,7 @@ void UDPManager::onReadyRead() {
         quint16 senderPort;
 
         m_socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-        qDebug() << "Data received: " << datagram;
+        qDebug() << "Data received (in UDP): " << datagram;
 
         QJsonDocument doc = QJsonDocument::fromJson(datagram);
         if (!doc.isNull() && doc.isObject()) {
