@@ -26,24 +26,20 @@ void Game::setupNetwork() {
     QString address = (role == NetworkManager::Server) ? QString() : "127.0.0.1";
     quint16 port = 12345;
 
-    if (protocol == "TCP") {
+    if (protocol == "TCP")
         m_networkManager = new TCPManager(this);
-        m_networkManager->initialize(role, address, port);
-        connect(m_networkManager, &TCPManager::dataReceived, this, &Game::onDataReceived);
-        connect(m_networkManager, &TCPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
-        connect(m_networkManager, &TCPManager::errorOccurred, this, &Game::errorOccurred);
-    }
-    else if (protocol == "UDP") { // TODO
+    else if (protocol == "UDP")
         m_networkManager = new UDPManager(this);
-        m_networkManager->initialize(role, address, port);
-        connect(m_networkManager, &UDPManager::dataReceived, this, &Game::onDataReceived);
-        connect(m_networkManager, &UDPManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
-        connect(m_networkManager, &UDPManager::errorOccurred, this, &Game::errorOccurred);
-    }
+
+    m_networkManager->initialize(role, address, port);
+    connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
+    connect(m_networkManager, &NetworkManager::dataReceived, this, &Game::onDataReceived);
+    connect(m_networkManager, &NetworkManager::errorOccurred, this, &Game::errorOccurred);
 }
 
 void Game::onDataReceived(const QJsonObject& data) {
     qDebug() << "Data received:" << data;
+    // TODO: handle received data (died, moved, placed bomb, etc.)
 }
 
 void Game::errorOccurred(const QString& message) {
@@ -117,7 +113,7 @@ void Game::playerDied(int playerId) {
     message["type"] = "playerDied";
     message["content"] = playerId;
     m_networkManager->sendData(message);
-    // TODO: handle player death
+    // modify json structure if needed
 }
 
 void Game::playerMoved(int playerId, Qt::Key key) {
@@ -127,7 +123,7 @@ void Game::playerMoved(int playerId, Qt::Key key) {
     message["content"] = playerId;
     message["key"] = key;
     m_networkManager->sendData(message);
-    // TODO: handle player movement
+    // modify json structure if needed
 }
 
 void Game::playerPlacedBomb(int playerId) {
@@ -136,7 +132,7 @@ void Game::playerPlacedBomb(int playerId) {
     message["type"] = "playerPlacedBomb";
     message["content"] = playerId;
     m_networkManager->sendData(message);
-    // TODO: handle player bomb placement
+    // modify json structure if needed
 }
 
 void Game::update() {

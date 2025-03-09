@@ -16,7 +16,6 @@ public:
     void initialize(Role role, const QString& address, quint16 port) override;
     void sendData(const QJsonObject& data) override;
     void stop() override;
-    Role role() override { return m_role; }
 
 private slots:
     void onNewConnection();
@@ -29,10 +28,6 @@ private:
 
     QTcpServer* m_server;
     QTcpSocket* m_socket;
-    QThread m_networkThread;
-    QString m_address;
-    quint16 m_port;
-    Role m_role;
 };
 
 #endif // TCPMANAGER_H

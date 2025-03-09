@@ -2,8 +2,7 @@
 
 TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
                                           m_server(nullptr),
-                                          m_socket(nullptr),
-                                          m_port(0) {
+                                          m_socket(nullptr) {
     // moveToThread(&m_networkThread);
     // m_networkThread.start();
 }

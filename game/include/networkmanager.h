@@ -18,13 +18,13 @@ public:
     enum Role { Server,
                 Client };
     Q_ENUM(Role)
+    Role role() { return m_role; }
 
     virtual ~NetworkManager() = default;
 
     virtual void initialize(Role role, const QString& address, quint16 port) = 0;
     virtual void sendData(const QJsonObject& data) = 0;
     virtual void stop() = 0;
-    virtual Role role() = 0;
 
 signals:
     void dataReceived(const QJsonObject& data);
@@ -33,6 +33,11 @@ signals:
 
 protected:
     explicit NetworkManager(QObject* parent = nullptr);
+
+    QThread m_networkThread;
+    QString m_address;
+    quint16 m_port;
+    Role m_role;
 };
 
 #endif // NETWORKMANAGER_H
