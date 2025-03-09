@@ -1,6 +1,7 @@
 QT       += core gui widgets
 QT       += network
 
+win32:CONFIG += console
 
 CONFIG   += c++17
 

@@ -4,8 +4,8 @@ TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
                                           m_server(nullptr),
                                           m_socket(nullptr),
                                           m_port(0) {
-    moveToThread(&m_networkThread);
-    m_networkThread.start();
+    // moveToThread(&m_networkThread);
+    // m_networkThread.start();
 }
 
 TCPManager::~TCPManager() {
@@ -19,7 +19,6 @@ void TCPManager::initialize(Role role, const QString& address, quint16 port) {
     m_address = address;
     m_port = port;
 
-    qDebug() << "Trying to initialize network manager...2";
     QMetaObject::invokeMethod(this, [this]() {
         if (m_role == Server) setupServer();
         else setupClient();
