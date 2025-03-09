@@ -1,13 +1,9 @@
 #include "../include/udpmanager.h"
 
 UDPManager::UDPManager(QObject* parent) : NetworkManager(parent),
-                                          m_socket(nullptr),
-                                          m_port(0) {
-    connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
-        emit errorOccurred(m_socket->errorString());
-    });
-    moveToThread(&m_networkThread);
-    m_networkThread.start();
+                                          m_socket(nullptr) {
+    // moveToThread(&m_networkThread);
+    // m_networkThread.start();
 }
 
 UDPManager::~UDPManager() {
@@ -24,17 +20,26 @@ void UDPManager::initialize(Role role, const QString& address, quint16 port) {
     QMetaObject::invokeMethod(this, [this]() {
         m_socket = new QUdpSocket(this);
         connect(m_socket, &QUdpSocket::readyRead, this, &UDPManager::onReadyRead);
+        connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
+            emit errorOccurred(m_socket->errorString());
+        });
 
         if (m_role == Server) {
             if (m_socket->bind(QHostAddress::Any, m_port)) {
-                emit connectionStatusChanged(true);
+                qDebug() << "UDP Server bound to port" << m_port;
             }
             else {
                 emit errorOccurred(m_socket->errorString());
             }
         }
         else {
-            emit connectionStatusChanged(true);
+            // Client binds to any available port to receive responses
+            if (m_socket->bind()) {
+                qDebug() << "UDP Client bound to port" << m_socket->localPort();
+            }
+            else {
+                emit errorOccurred(m_socket->errorString());
+            }
         }
     });
 
@@ -49,11 +54,16 @@ void UDPManager::onReadyRead() {
         quint16 senderPort;
 
         m_socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-        qDebug() << "Data received (in UDP): " << datagram;
+
+        if (m_role == Server) {
+            m_peerAddress = sender;
+            m_peerPort = senderPort;
+        }
 
         QJsonDocument doc = QJsonDocument::fromJson(datagram);
         if (!doc.isNull() && doc.isObject()) {
             emit dataReceived(doc.object());
+            // qDebug() << "UDP Data received from" << sender << ":" << datagram;
         }
     }
 }
@@ -63,12 +73,31 @@ void UDPManager::sendData(const QJsonObject& data) {
         QJsonDocument doc(data);
         QByteArray datagram = doc.toJson();
 
-        QHostAddress address = m_role == Server ? QHostAddress::Broadcast : QHostAddress(m_address);
-        m_socket->writeDatagram(datagram, address, m_port);
-        qDebug() << "Data sent: " << datagram;
+        QHostAddress targetAddress;
+        quint16 targetPort;
+
+        if (m_role == Server) {
+            // Send to last known client address
+            targetAddress = m_peerAddress;
+            targetPort = m_peerPort;
+        }
+        else {
+            // Client sends to server's address
+            targetAddress = QHostAddress(m_address);
+            targetPort = m_port;
+        }
+
+        if (!targetAddress.isNull() && targetPort != 0) {
+            m_socket->writeDatagram(datagram, targetAddress, targetPort);
+            qDebug() << "UDP Data sent to" << targetAddress << ":" << datagram;
+        }
     });
 }
 
 void UDPManager::stop() {
-    if (m_socket) m_socket->close();
+    if (m_socket) {
+        m_socket->close();
+        m_socket->deleteLater();
+        m_socket = nullptr;
+    }
 }

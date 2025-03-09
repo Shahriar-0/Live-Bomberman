@@ -1,6 +1,7 @@
 #ifndef UDPMANAGER_H
 #define UDPMANAGER_H
 
+#include <QHostAddress>
 #include <QThread>
 #include <QUdpSocket>
 
@@ -15,17 +16,14 @@ public:
     void initialize(Role role, const QString& address, quint16 port) override;
     void sendData(const QJsonObject& data) override;
     void stop() override;
-    Role role() override { return m_role; }
 
 private slots:
     void onReadyRead();
 
 private:
     QUdpSocket* m_socket;
-    QThread m_networkThread;
-    QString m_address;
-    quint16 m_port;
-    Role m_role;
+    QHostAddress m_peerAddress;
+    quint16 m_peerPort = 0;
 };
 
 #endif // UDPMANAGER_H
