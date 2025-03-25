@@ -35,6 +35,10 @@ void Game::setupNetwork() {
     connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
     connect(m_networkManager, &NetworkManager::dataReceived, this, &Game::onDataReceived);
     connect(m_networkManager, &NetworkManager::errorOccurred, this, &Game::errorOccurred);
+
+    if (protocol == "UDP" && role == NetworkManager::Client) {
+        onConnectionStatusChanged(true);
+    }
 }
 
 void Game::onDataReceived(const QJsonObject& data) {
@@ -47,6 +51,7 @@ void Game::errorOccurred(const QString& message) {
 }
 
 void Game::onConnectionStatusChanged(bool connected) {
+    qDebug() << "Connection status changed:" << connected;
     if (connected) {
         qDebug() << "Connected to peer.";
         if (m_networkManager->role() == NetworkManager::Client) {
@@ -54,7 +59,6 @@ void Game::onConnectionStatusChanged(bool connected) {
             message["type"] = "test";
             message["content"] = "Hello from Player 2!";
             m_networkManager->sendData(message);
-            // m_networkManager->sendData(message);
         }
     }
     else {

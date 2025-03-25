@@ -83,7 +83,7 @@ void TCPManager::sendData(const QJsonObject& data) {
             QJsonDocument doc(data);
             m_socket->write(doc.toJson());
             m_socket->flush();
-            qDebug() << "TCP Data sent: " << doc.toJson();
+            qDebug() << "TCP Data sent to " << m_socket->peerAddress() << ":" << m_socket->peerPort() << ":" << QString::fromUtf8(doc.toJson());
         }
     });
 }

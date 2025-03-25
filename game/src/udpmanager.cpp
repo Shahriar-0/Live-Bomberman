@@ -23,15 +23,19 @@ void UDPManager::initialize(Role role, const QString& address, quint16 port) {
         connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
 
         if (m_role == Server) {
-            if (!m_socket->bind(QHostAddress::Any, m_port))
+            if (!m_socket->bind(QHostAddress::Any, m_port)) {
                 emit errorOccurred(m_socket->errorString());
+                return;
+            }
 
             qDebug() << "UDP Server bound to port" << m_port;
         }
         else {
             // Client binds to any available port to receive responses
-            if (!m_socket->bind())
+            if (!m_socket->bind()) {
                 emit errorOccurred(m_socket->errorString());
+                return;
+            }
 
             qDebug() << "UDP Client bound to port" << m_socket->localPort();
         }
@@ -81,7 +85,7 @@ void UDPManager::sendData(const QJsonObject& data) {
 
         if (!targetAddress.isNull() && targetPort != 0) {
             m_socket->writeDatagram(datagram, targetAddress, targetPort);
-            qDebug() << "UDP Data sent to" << targetAddress << ":" << datagram;
+            qDebug() << "UDP Data sent to" << targetAddress << ":" << targetPort << ":" << QString::fromUtf8(datagram);
         }
     });
 }
