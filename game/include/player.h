@@ -22,13 +22,14 @@ public:
     int getPlayerId() const { return m_playerId; }
     void placeBomb();
     void die();
+    void updateDirectionState(int key, bool isPressed);
 
 public slots:
     void updateMovement();
 
 signals:
     void playerDied(int playerId);
-    void playerMoved(int playerId, Qt::Key key);
+    void playerMoved(int playerId, Qt::Key key, bool isPressed);
     void playerPlacedBomb(int playerId);
 
 protected:
@@ -37,7 +38,6 @@ protected:
 
 private:
     void initializeAnimations();
-    void updateDirectionState(int key, bool isPressed);
     void applyPlayerEffects();
 
     bool m_moveUp = false;

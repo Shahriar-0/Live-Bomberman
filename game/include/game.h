@@ -31,7 +31,7 @@ public slots:
     void onDataReceived(const QJsonObject& data);
     void onConnectionStatusChanged(bool connected);
     void playerDied(int playerId);
-    void playerMoved(int playerId, Qt::Key key);
+    void playerMoved(int playerId, Qt::Key key, bool isPressed);
     void playerPlacedBomb(int playerId);
     void errorOccurred(const QString& message);
 
@@ -64,6 +64,7 @@ private:
     enum MESSAGE_FIELD {
         PlayerId,
         Key,
+        IsPressed,
         Type,
         FieldError
     };

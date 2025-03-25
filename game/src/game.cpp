@@ -46,6 +46,9 @@ void Game::onDataReceived(const QJsonObject& data) {
 
     QString type = data[messageFieldToString(MESSAGE_FIELD::Type)].toString();
     int playerId = data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt();
+    int key = data[messageFieldToString(MESSAGE_FIELD::Key)].toInt();
+    bool isPressed = data[messageFieldToString(MESSAGE_FIELD::IsPressed)].toBool();
+
     QPointer<Player> player = getPlayerById(playerId);
 
     MESSAGE_TYPE messageType = stringToMessageType(type);
@@ -56,6 +59,7 @@ void Game::onDataReceived(const QJsonObject& data) {
         break;
     case MESSAGE_TYPE::PlayerMoved:
         qDebug() << "Player " << playerId << " moved.";
+        player->updateDirectionState(key, isPressed);
         break;
     case MESSAGE_TYPE::PlayerPlacedBomb:
         qDebug() << "Player " << playerId << " placed a bomb.";
@@ -143,13 +147,14 @@ void Game::playerDied(int playerId) {
     }
 }
 
-void Game::playerMoved(int playerId, Qt::Key key) {
+void Game::playerMoved(int playerId, Qt::Key key, bool isPressed) {
     qDebug() << "Player " << playerId << " moved.";
     if (playerId == selectedPlayer) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
         message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
+        message[messageFieldToString(MESSAGE_FIELD::IsPressed)] = isPressed;
 
         m_networkManager->sendData(message);
     }
@@ -220,6 +225,8 @@ QString Game::messageFieldToString(MESSAGE_FIELD field) {
         return "playerId";
     case MESSAGE_FIELD::Key:
         return "key";
+    case MESSAGE_FIELD::IsPressed:
+        return "isPressed";
     default:
         return "";
     }
@@ -232,6 +239,8 @@ Game::MESSAGE_FIELD Game::stringToMessageField(const QString& field) {
         return MESSAGE_FIELD::PlayerId;
     if (field == "key")
         return MESSAGE_FIELD::Key;
+    if (field == "isPressed")
+        return MESSAGE_FIELD::IsPressed;
     return MESSAGE_FIELD::FieldError;
 }
 

@@ -84,9 +84,7 @@ void Player::updateDirectionState(int key, bool isPressed) {
     default: break;
     }
     m_isMoving = m_moveUp || m_moveDown || m_moveLeft || m_moveRight;
-    if (m_isMoving) {
-        emit playerMoved(m_playerId, qtKey);
-    }
+    emit playerMoved(m_playerId, qtKey, isPressed);
 }
 
 void Player::updateMovement() {
