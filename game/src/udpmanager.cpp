@@ -20,26 +20,20 @@ void UDPManager::initialize(Role role, const QString& address, quint16 port) {
     QMetaObject::invokeMethod(this, [this]() {
         m_socket = new QUdpSocket(this);
         connect(m_socket, &QUdpSocket::readyRead, this, &UDPManager::onReadyRead);
-        connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
-            emit errorOccurred(m_socket->errorString());
-        });
+        connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
 
         if (m_role == Server) {
-            if (m_socket->bind(QHostAddress::Any, m_port)) {
+            if (m_socket->bind(QHostAddress::Any, m_port))
                 qDebug() << "UDP Server bound to port" << m_port;
-            }
-            else {
+            else
                 emit errorOccurred(m_socket->errorString());
-            }
         }
         else {
             // Client binds to any available port to receive responses
-            if (m_socket->bind()) {
+            if (m_socket->bind())
                 qDebug() << "UDP Client bound to port" << m_socket->localPort();
-            }
-            else {
+            else
                 emit errorOccurred(m_socket->errorString());
-            }
         }
     });
 
@@ -61,10 +55,8 @@ void UDPManager::onReadyRead() {
         }
 
         QJsonDocument doc = QJsonDocument::fromJson(datagram);
-        if (!doc.isNull() && doc.isObject()) {
+        if (!doc.isNull() && doc.isObject())
             emit dataReceived(doc.object());
-            // qDebug() << "UDP Data received from" << sender << ":" << datagram;
-        }
     }
 }
 

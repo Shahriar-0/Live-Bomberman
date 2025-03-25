@@ -31,17 +31,15 @@ void TCPManager::setupServer() {
     qDebug() << "Server created";
     connect(m_server, &QTcpServer::newConnection, this, &TCPManager::onNewConnection);
 
-    if (!m_server->listen(QHostAddress::Any, m_port)) {
+    if (!m_server->listen(QHostAddress::Any, m_port))
         emit errorOccurred(m_server->errorString());
-    }
+
     qDebug() << "Server started";
 }
 
 void TCPManager::setupClient() {
     m_socket = new QTcpSocket(this);
-    connect(m_socket, &QTcpSocket::connected, this, [this]() {
-        emit connectionStatusChanged(true);
-    });
+    connect(m_socket, &QTcpSocket::connected, this, [this]() { emit connectionStatusChanged(true); });
     connect(m_socket, &QTcpSocket::readyRead, this, &TCPManager::onReadyRead);
     connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
 
@@ -51,9 +49,7 @@ void TCPManager::setupClient() {
 void TCPManager::onNewConnection() {
     if (m_role == Server && !m_socket) {
         m_socket = m_server->nextPendingConnection();
-        connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) {
-            emit errorOccurred(m_socket->errorString());
-        });
+        connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
         connect(m_socket, &QTcpSocket::readyRead, this, &TCPManager::onReadyRead);
         connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
         emit connectionStatusChanged(true);
@@ -66,10 +62,8 @@ void TCPManager::onReadyRead() {
         QByteArray data = m_socket->readAll();
         QJsonDocument doc = QJsonDocument::fromJson(data);
 
-        if (!doc.isNull() && doc.isObject()) {
+        if (!doc.isNull() && doc.isObject())
             emit dataReceived(doc.object());
-            // qDebug() << "Data received (in TCP): " << data;
-        }
     }
 }
 
