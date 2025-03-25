@@ -134,27 +134,36 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 
 void Game::playerDied(int playerId) {
     qDebug() << "Player " << playerId << " died.";
-    QJsonObject message;
-    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
-    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-    m_networkManager->sendData(message);
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+
+        m_networkManager->sendData(message);
+    }
 }
 
 void Game::playerMoved(int playerId, Qt::Key key) {
     qDebug() << "Player " << playerId << " moved.";
-    QJsonObject message;
-    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
-    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-    message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
-    m_networkManager->sendData(message);
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+        message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
+
+        m_networkManager->sendData(message);
+    }
 }
 
 void Game::playerPlacedBomb(int playerId) {
-    qDebug() << "Player " << playerId << " placed a bomb (inside playerPlacedBomb).";
-    QJsonObject message;
-    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
-    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-    m_networkManager->sendData(message);
+    qDebug() << "Player " << playerId << " placed a bomb.";
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+
+        m_networkManager->sendData(message);
+    }
 }
 
 void Game::update() {
