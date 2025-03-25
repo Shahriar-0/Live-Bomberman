@@ -52,15 +52,9 @@ To run this project, you will need the following:
 
 **Purpose:** Initializes the TCP manager, setting up the necessary network components based on the specified role (client or server).
 
-**Challenge:** Ensuring proper initialization of either the server or client without blocking the main thread.
-**Solution:** Uses `QMetaObject::invokeMethod()` to defer setup execution, allowing the server or client to be initialized asynchronously.
-
 ### Destructor (TCPManager::~TCPManager)
 
 **Purpose:** Cleans up resources by stopping the network connections and safely terminating the network thread.
-
-**Challenge:** Ensuring proper shutdown of the network thread to prevent dangling operations.
-**Solution:** Calls `stop()` to close active connections, followed by `quit()` and `wait()` on the network thread to ensure a clean exit.
 
 ### initialize
 
@@ -81,14 +75,14 @@ To run this project, you will need the following:
 **Purpose:** Establishes a client connection to the specified server.
 
 **Challenge:** Detecting connection failures and responding accordingly.
-**Solution:** Connects `QTcpSocket` signals (`connected`, `readyRead`, `disconnected`) to relevant slots and emits `connectionStatusChanged` when connected.
+**Solution:** Connects `QTcpSocket` signals (`connected`, `readyRead`, `disconnected`, and `errorOccurred`) to relevant slots and emits `connectionStatusChanged` when connected.
 
 ### onNewConnection
 
 **Purpose:** Accepts incoming client connections on the server side and sets up the necessary event listeners.
 
 **Challenge:** Managing multiple client connections while ensuring safe resource handling.
-**Solution:** Stores the client socket from `nextPendingConnection()`, connects it to relevant slots, and emits `connectionStatusChanged`.
+**Solution:** Stores the client socket from `nextPendingConnection()`, connects it to relevant slots, and emits `connectionStatusChanged`. It will only accept one connection at a time so the `!m_socket` check.
 
 ### onReadyRead
 
@@ -116,9 +110,7 @@ To run this project, you will need the following:
 **Purpose:** Stops the TCP connection by closing the server or disconnecting the client.
 
 **Challenge:** Handling both server and client shutdown properly.
-**Solution:** Calls `close()` for the server and `disconnectFromHost()` for the client to ensure a graceful disconnection.
-
-This report follows the same structured approach as the AudioInput report, highlighting each function's **purpose, challenges, and solutions** concisely while maintaining technical clarity. 🚀
+**Solution:** Calls `close()` for the server and `disconnectFromHost()` for the client to ensure a graceful disconnection, and deletes them using `deleteLater()`.
 
 ## Questions
 

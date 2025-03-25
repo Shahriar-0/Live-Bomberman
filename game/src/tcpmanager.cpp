@@ -40,6 +40,7 @@ void TCPManager::setupServer() {
 void TCPManager::setupClient() {
     m_socket = new QTcpSocket(this);
     connect(m_socket, &QTcpSocket::connected, this, [this]() { emit connectionStatusChanged(true); });
+    connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
     connect(m_socket, &QTcpSocket::readyRead, this, &TCPManager::onReadyRead);
     connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
 
@@ -88,6 +89,12 @@ void TCPManager::sendData(const QJsonObject& data) {
 }
 
 void TCPManager::stop() {
-    if (m_server) m_server->close();
-    if (m_socket) m_socket->disconnectFromHost();
+    if (m_server) {
+        m_server->close();
+        m_server->deleteLater();
+    }
+    if (m_socket) {
+        m_socket->disconnectFromHost();
+        m_socket->deleteLater();
+    }
 }
