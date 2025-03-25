@@ -43,7 +43,26 @@ void Game::setupNetwork() {
 
 void Game::onDataReceived(const QJsonObject& data) {
     qDebug() << "Data received:" << data;
-    // TODO: handle received data (died, moved, placed bomb, etc.)
+
+    QString type = data[messageFieldToString(MESSAGE_FIELD::Type)].toString();
+    int playerId = data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt();
+    QPointer<Player> player = getPlayerById(playerId);
+
+    MESSAGE_TYPE messageType = stringToMessageType(type);
+    switch (messageType) {
+    case MESSAGE_TYPE::PlayerDied:
+        qDebug() << "Player " << playerId << " died.";
+        break;
+    case MESSAGE_TYPE::PlayerMoved:
+        qDebug() << "Player " << playerId << " moved.";
+        break;
+    case MESSAGE_TYPE::PlayerPlacedBomb:
+        qDebug() << "Player " << playerId << " placed a bomb.";
+        player->placeBomb();
+        break;
+    default:
+        break;
+    }
 }
 
 void Game::errorOccurred(const QString& message) {
@@ -56,8 +75,9 @@ void Game::onConnectionStatusChanged(bool connected) {
         qDebug() << "Connected to peer.";
         if (m_networkManager->role() == NetworkManager::Client) {
             QJsonObject message;
-            message["type"] = "test";
-            message["content"] = "Hello from Player 2!";
+            message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::ConnectionStatus);
+            message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = 2;
+            message[messageFieldToString(MESSAGE_FIELD::Key)] = "Hello from Player 2!";
             m_networkManager->sendData(message);
         }
     }
@@ -117,7 +137,6 @@ void Game::playerDied(int playerId) {
     message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
     message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
     m_networkManager->sendData(message);
-    // modify json structure if needed
 }
 
 void Game::playerMoved(int playerId, Qt::Key key) {
@@ -127,7 +146,6 @@ void Game::playerMoved(int playerId, Qt::Key key) {
     message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
     message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
     m_networkManager->sendData(message);
-    // modify json structure if needed
 }
 
 void Game::playerPlacedBomb(int playerId) {
@@ -136,7 +154,6 @@ void Game::playerPlacedBomb(int playerId) {
     message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
     message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
     m_networkManager->sendData(message);
-    // modify json structure if needed
 }
 
 void Game::update() {
@@ -166,9 +183,23 @@ QString Game::messageTypeToString(MESSAGE_TYPE type) {
         return "playerMoved";
     case MESSAGE_TYPE::PlayerPlacedBomb:
         return "playerPlacedBomb";
+    case MESSAGE_TYPE::ConnectionStatus:
+        return "connectionStatus";
     default:
         return "";
     }
+}
+
+Game::MESSAGE_TYPE Game::stringToMessageType(const QString& type) {
+    if (type == "playerDied")
+        return MESSAGE_TYPE::PlayerDied;
+    if (type == "playerMoved")
+        return MESSAGE_TYPE::PlayerMoved;
+    if (type == "playerPlacedBomb")
+        return MESSAGE_TYPE::PlayerPlacedBomb;
+    if (type == "connectionStatus")
+        return MESSAGE_TYPE::ConnectionStatus;
+    return MESSAGE_TYPE::TypeError;
 }
 
 QString Game::messageFieldToString(MESSAGE_FIELD field) {
@@ -182,4 +213,23 @@ QString Game::messageFieldToString(MESSAGE_FIELD field) {
     default:
         return "";
     }
+}
+
+Game::MESSAGE_FIELD Game::stringToMessageField(const QString& field) {
+    if (field == "type")
+        return MESSAGE_FIELD::Type;
+    if (field == "playerId")
+        return MESSAGE_FIELD::PlayerId;
+    if (field == "key")
+        return MESSAGE_FIELD::Key;
+    return MESSAGE_FIELD::FieldError;
+}
+
+QPointer<Player> Game::getPlayerById(int playerId) {
+    for (const QPointer<Player>& player : players) {
+        if (player && player->getPlayerId() == playerId) {
+            return player;
+        }
+    }
+    return nullptr;
 }

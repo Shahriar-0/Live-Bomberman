@@ -57,17 +57,22 @@ private:
         PlayerMoved,
         PlayerDied,
         PlayerPlacedBomb,
-        ConnectionStatus
+        ConnectionStatus,
+        TypeError
     };
 
     enum MESSAGE_FIELD {
         PlayerId,
         Key,
-        Type
+        Type,
+        FieldError
     };
 
     QString messageTypeToString(MESSAGE_TYPE type);
     QString messageFieldToString(MESSAGE_FIELD field);
+    MESSAGE_TYPE stringToMessageType(const QString& type);
+    MESSAGE_FIELD stringToMessageField(const QString& field);
+    QPointer<Player> getPlayerById(int playerId);
 };
 
 #endif // GAME_H

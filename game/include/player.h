@@ -20,6 +20,8 @@ public:
     void takeDamage(int damage);
     int getHealth() const { return m_health; }
     int getPlayerId() const { return m_playerId; }
+    void placeBomb();
+    void die();
 
 public slots:
     void updateMovement();
@@ -32,11 +34,9 @@ signals:
 protected:
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
-    void die();
 
 private:
     void initializeAnimations();
-    void placeBomb();
     void updateDirectionState(int key, bool isPressed);
     void applyPlayerEffects();
 
