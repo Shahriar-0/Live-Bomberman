@@ -27,6 +27,14 @@ Welcome to the CN CA1 repository! This project is designed for teaching assistan
     - [onReadyRead](#onreadyread-1)
     - [sendData](#senddata-1)
     - [stop](#stop-1)
+  - [Game](#game)
+    - [Constructor](#constructor-2)
+    - [setupNetwork](#setupnetwork)
+    - [onDataReceived](#ondatareceived)
+    - [onConnectionStatusChanged](#onconnectionstatuschanged)
+    - [errorOccurred](#erroroccurred)
+    - [connectPlayerSignals (playerDied, playerMoved, playerPlacedBomb)](#connectplayersignals-playerdied-playermoved-playerplacedbomb)
+    - [update](#update)
   - [Questions](#questions)
     - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
     - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
@@ -53,7 +61,6 @@ To run this project, you will need the following:
 - CMake (optional, for building the project)
 
 ## TCP
-<!-- TODO: mention duplicate data send -->
 
 ### Constructor
 
@@ -134,7 +141,7 @@ To run this project, you will need the following:
 **Purpose:** Sets up the UDP socket for communication, either as a server or a client, using the provided IP address and port.
 
 **Challenge:** Binding the socket correctly for both roles.
-**Solution:** The server binds to `QHostAddress::Any` on the specified port to listen for incoming messages. The client binds to an available port to receive responses while sending messages to the designated server. Any binding errors trigger the `errorOccurred` signal.
+**Solution:** The server binds to `QHostAddress::Any` on the specified port to listen for incoming messages. The client binds to an available port to receive responses while sending messages to the designated server. Any binding errors trigger the `errorOccurred` signal. As UDP is not connection oriented, no `connectionStatusChanged` signal is emitted and it's handled in the game class.
 
 ### onReadyRead
 
@@ -156,6 +163,22 @@ To run this project, you will need the following:
 
 **Challenge:** Ensuring proper cleanup to avoid dangling pointers.
 **Solution:** Closes the socket, deletes it safely using `deleteLater()`, and sets the pointer to `nullptr`.
+
+## Game
+
+### Constructor
+
+### setupNetwork
+
+### onDataReceived
+
+### onConnectionStatusChanged
+
+### errorOccurred
+
+### connectPlayerSignals (playerDied, playerMoved, playerPlacedBomb)
+
+### update
 
 ## Questions
 
