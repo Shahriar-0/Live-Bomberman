@@ -52,6 +52,22 @@ private:
     QString protocol;
     QList<QPointer<Player>> players;
     static constexpr int FrameRate = 30;
+
+    enum MESSAGE_TYPE {
+        PlayerMoved,
+        PlayerDied,
+        PlayerPlacedBomb,
+        ConnectionStatus
+    };
+
+    enum MESSAGE_FIELD {
+        PlayerId,
+        Key,
+        Type
+    };
+
+    QString messageTypeToString(MESSAGE_TYPE type);
+    QString messageFieldToString(MESSAGE_FIELD field);
 };
 
 #endif // GAME_H

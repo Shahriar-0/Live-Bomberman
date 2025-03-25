@@ -114,8 +114,8 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 void Game::playerDied(int playerId) {
     qDebug() << "Player " << playerId << " died.";
     QJsonObject message;
-    message["type"] = "playerDied";
-    message["content"] = playerId;
+    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
+    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
     m_networkManager->sendData(message);
     // modify json structure if needed
 }
@@ -123,9 +123,9 @@ void Game::playerDied(int playerId) {
 void Game::playerMoved(int playerId, Qt::Key key) {
     qDebug() << "Player " << playerId << " moved.";
     QJsonObject message;
-    message["type"] = "playerMoved";
-    message["content"] = playerId;
-    message["key"] = key;
+    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
+    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+    message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
     m_networkManager->sendData(message);
     // modify json structure if needed
 }
@@ -133,8 +133,8 @@ void Game::playerMoved(int playerId, Qt::Key key) {
 void Game::playerPlacedBomb(int playerId) {
     qDebug() << "Player " << playerId << " placed a bomb (inside playerPlacedBomb).";
     QJsonObject message;
-    message["type"] = "playerPlacedBomb";
-    message["content"] = playerId;
+    message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
+    message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
     m_networkManager->sendData(message);
     // modify json structure if needed
 }
@@ -156,4 +156,30 @@ void Game::update() {
 
 void Game::addPlayer(Player* player) {
     players.append(player);
+}
+
+QString Game::messageTypeToString(MESSAGE_TYPE type) {
+    switch (type) {
+    case MESSAGE_TYPE::PlayerDied:
+        return "playerDied";
+    case MESSAGE_TYPE::PlayerMoved:
+        return "playerMoved";
+    case MESSAGE_TYPE::PlayerPlacedBomb:
+        return "playerPlacedBomb";
+    default:
+        return "";
+    }
+}
+
+QString Game::messageFieldToString(MESSAGE_FIELD field) {
+    switch (field) {
+    case MESSAGE_FIELD::Type:
+        return "type";
+    case MESSAGE_FIELD::PlayerId:
+        return "playerId";
+    case MESSAGE_FIELD::Key:
+        return "key";
+    default:
+        return "";
+    }
 }
