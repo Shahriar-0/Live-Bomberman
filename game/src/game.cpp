@@ -52,6 +52,7 @@ void Game::onDataReceived(const QJsonObject& data) {
     switch (messageType) {
     case MESSAGE_TYPE::PlayerDied:
         qDebug() << "Player " << playerId << " died.";
+        player->die();
         break;
     case MESSAGE_TYPE::PlayerMoved:
         qDebug() << "Player " << playerId << " moved.";
