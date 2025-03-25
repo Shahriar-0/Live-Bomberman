@@ -9,6 +9,17 @@ Welcome to the CN CA1 repository! This project is designed for teaching assistan
   - [Introduction](#introduction)
   - [Features](#features)
   - [Requirements](#requirements)
+  - [TCP](#tcp)
+    - [**Constructor (TCPManager::TCPManager)**](#constructor-tcpmanagertcpmanager)
+    - [**Destructor (TCPManager::~TCPManager)**](#destructor-tcpmanagertcpmanager)
+    - [**initialize**](#initialize)
+    - [**setupServer**](#setupserver)
+    - [**setupClient**](#setupclient)
+    - [**onNewConnection**](#onnewconnection)
+    - [**onReadyRead**](#onreadyread)
+    - [**onDisconnected**](#ondisconnected)
+    - [**sendData**](#senddata)
+    - [**stop**](#stop)
   - [Questions](#questions)
     - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
     - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
@@ -33,6 +44,81 @@ To run this project, you will need the following:
 - QT framework (version 5.15 or later)
 - C++ compiler
 - CMake (optional, for building the project)
+
+## TCP
+<!-- TODO: mention duplicate data send -->
+
+### **Constructor (TCPManager::TCPManager)**
+
+**Purpose:** Initializes the TCP manager, setting up the necessary network components based on the specified role (client or server).
+
+**Challenge:** Ensuring proper initialization of either the server or client without blocking the main thread.
+**Solution:** Uses `QMetaObject::invokeMethod()` to defer setup execution, allowing the server or client to be initialized asynchronously.
+
+### **Destructor (TCPManager::~TCPManager)**
+
+**Purpose:** Cleans up resources by stopping the network connections and safely terminating the network thread.
+
+**Challenge:** Ensuring proper shutdown of the network thread to prevent dangling operations.
+**Solution:** Calls `stop()` to close active connections, followed by `quit()` and `wait()` on the network thread to ensure a clean exit.
+
+### **initialize**
+
+**Purpose:** Sets up the TCP connection based on the role (server or client), using the provided IP address and port.
+
+**Challenge:** Handling role-specific initialization dynamically.
+**Solution:** Uses a lambda inside `QMetaObject::invokeMethod()` to decide whether to initialize a server (`setupServer()`) or a client (`setupClient()`).
+
+### **setupServer**
+
+**Purpose:** Creates and starts a `QTcpServer` to listen for incoming connections.
+
+**Challenge:** Handling server startup failures (e.g., port already in use).
+**Solution:** Checks the result of `listen()`, and if it fails, emits an `errorOccurred` signal with the error message.
+
+### **setupClient**
+
+**Purpose:** Establishes a client connection to the specified server.
+
+**Challenge:** Detecting connection failures and responding accordingly.
+**Solution:** Connects `QTcpSocket` signals (`connected`, `readyRead`, `disconnected`) to relevant slots and emits `connectionStatusChanged` when connected.
+
+### **onNewConnection**
+
+**Purpose:** Accepts incoming client connections on the server side and sets up the necessary event listeners.
+
+**Challenge:** Managing multiple client connections while ensuring safe resource handling.
+**Solution:** Stores the client socket from `nextPendingConnection()`, connects it to relevant slots, and emits `connectionStatusChanged`.
+
+### **onReadyRead**
+
+**Purpose:** Reads incoming data from the socket and emits it as a JSON object.
+
+**Challenge:** Handling partial or invalid JSON data.
+**Solution:** Converts incoming data to `QJsonDocument`, verifies it, and only emits valid JSON objects.
+
+### **onDisconnected**
+
+**Purpose:** Handles disconnection events by cleaning up resources and notifying the application.
+
+**Challenge:** Preventing memory leaks when a client disconnects from the server.
+**Solution:** Deletes the socket using `deleteLater()` and sets it to `nullptr` to avoid dangling pointers.
+
+### **sendData**
+
+**Purpose:** Sends a JSON object over the TCP connection.
+
+**Challenge:** Ensuring data is sent only when the socket is in a connected state.
+**Solution:** Checks the socket state before writing data and uses `flush()` to ensure the data is transmitted immediately.
+
+### **stop**
+
+**Purpose:** Stops the TCP connection by closing the server or disconnecting the client.
+
+**Challenge:** Handling both server and client shutdown properly.
+**Solution:** Calls `close()` for the server and `disconnectFromHost()` for the client to ensure a graceful disconnection.
+
+This report follows the same structured approach as the AudioInput report, highlighting each function's **purpose, challenges, and solutions** concisely while maintaining technical clarity. 🚀
 
 ## Questions
 
