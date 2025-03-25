@@ -102,9 +102,9 @@ void Game::setFocusOnPlayer() {
 }
 
 void Game::connectPlayerSignals(QPointer<Player> player) {
-    connect(player, &Player::playerDied, this, &Game::playerDied);
-    connect(player, &Player::playerMoved, this, &Game::playerMoved);
-    connect(player, &Player::playerPlacedBomb, this, &Game::playerPlacedBomb);
+    connect(player, &Player::playerDied, this, &Game::playerDied, Qt::UniqueConnection);
+    connect(player, &Player::playerMoved, this, &Game::playerMoved, Qt::UniqueConnection);
+    connect(player, &Player::playerPlacedBomb, this, &Game::playerPlacedBomb, Qt::UniqueConnection);
 }
 
 void Game::playerDied(int playerId) {
@@ -127,7 +127,7 @@ void Game::playerMoved(int playerId, Qt::Key key) {
 }
 
 void Game::playerPlacedBomb(int playerId) {
-    qDebug() << "Player " << playerId << " placed a bomb.";
+    qDebug() << "Player " << playerId << " placed a bomb (inside playerPlacedBomb).";
     QJsonObject message;
     message["type"] = "playerPlacedBomb";
     message["content"] = playerId;
