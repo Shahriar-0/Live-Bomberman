@@ -9,8 +9,8 @@ TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
 
 TCPManager::~TCPManager() {
     stop();
-    m_networkThread.quit();
-    m_networkThread.wait();
+    // m_networkThread.quit();
+    // m_networkThread.wait();
 }
 
 void TCPManager::initialize(Role role, const QString& address, quint16 port) {
@@ -88,7 +88,7 @@ void TCPManager::sendData(const QJsonObject& data) {
             QJsonDocument doc(data);
             m_socket->write(doc.toJson());
             m_socket->flush();
-            qDebug() << "Data sent: " << doc.toJson();
+            qDebug() << "TCP Data sent: " << doc.toJson();
         }
     });
 }

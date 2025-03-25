@@ -8,8 +8,8 @@ UDPManager::UDPManager(QObject* parent) : NetworkManager(parent),
 
 UDPManager::~UDPManager() {
     stop();
-    m_networkThread.quit();
-    m_networkThread.wait();
+    // m_networkThread.quit();
+    // m_networkThread.wait();
 }
 
 void UDPManager::initialize(Role role, const QString& address, quint16 port) {
