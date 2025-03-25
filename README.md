@@ -10,8 +10,8 @@ Welcome to the CN CA1 repository! This project is designed for teaching assistan
   - [Features](#features)
   - [Requirements](#requirements)
   - [TCP](#tcp)
-    - [Constructor (TCPManager::TCPManager)](#constructor-tcpmanagertcpmanager)
-    - [Destructor (TCPManager::~TCPManager)](#destructor-tcpmanagertcpmanager)
+    - [Constructor](#constructor)
+    - [Destructor](#destructor)
     - [initialize](#initialize)
     - [setupServer](#setupserver)
     - [setupClient](#setupclient)
@@ -20,6 +20,13 @@ Welcome to the CN CA1 repository! This project is designed for teaching assistan
     - [onDisconnected](#ondisconnected)
     - [sendData](#senddata)
     - [stop](#stop)
+  - [UDP](#udp)
+    - [Constructor](#constructor-1)
+    - [Destructor](#destructor-1)
+    - [initialize](#initialize-1)
+    - [onReadyRead](#onreadyread-1)
+    - [sendData](#senddata-1)
+    - [stop](#stop-1)
   - [Questions](#questions)
     - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
     - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
@@ -48,11 +55,11 @@ To run this project, you will need the following:
 ## TCP
 <!-- TODO: mention duplicate data send -->
 
-### Constructor (TCPManager::TCPManager)
+### Constructor
 
 **Purpose:** Initializes the TCP manager, setting up the necessary network components based on the specified role (client or server).
 
-### Destructor (TCPManager::~TCPManager)
+### Destructor
 
 **Purpose:** Cleans up resources by stopping the network connections and safely terminating the network thread.
 
@@ -111,6 +118,44 @@ To run this project, you will need the following:
 
 **Challenge:** Handling both server and client shutdown properly.
 **Solution:** Calls `close()` for the server and `disconnectFromHost()` for the client to ensure a graceful disconnection, and deletes them using `deleteLater()`.
+
+## UDP
+
+### Constructor
+
+**Purpose:** Initializes the UDP manager and prepares it for network communication.
+
+### Destructor
+
+**Purpose:** Cleans up resources by stopping the UDP socket and ensuring safe deallocation.
+
+### initialize
+
+**Purpose:** Sets up the UDP socket for communication, either as a server or a client, using the provided IP address and port.
+
+**Challenge:** Binding the socket correctly for both roles.
+**Solution:** The server binds to `QHostAddress::Any` on the specified port to listen for incoming messages. The client binds to an available port to receive responses while sending messages to the designated server. Any binding errors trigger the `errorOccurred` signal.
+
+### onReadyRead
+
+**Purpose:** Handles incoming data from the UDP socket and processes it as JSON.
+
+**Challenge:** Correctly extracting and parsing datagrams while identifying the sender.
+**Solution:** Reads all pending datagrams in a loop. Stores the sender’s address and port when operating as a server for responses. Converts the received data into a `QJsonDocument` and emits the `dataReceived` signal only if the data is valid JSON.
+
+### sendData
+
+**Purpose:** Sends a JSON object over UDP to the appropriate destination.
+
+**Challenge:** Determining the correct target address and ensuring data is sent reliably.
+**Solution:** If acting as a server, sends data to the last known client (`m_peerAddress` and `m_peerPort`). If acting as a client, sends data to the predefined server address (`m_address` and `m_port`). Ensures the target address and port are valid before sending, and logs the transmission.
+
+### stop
+
+**Purpose:** Stops UDP communication by closing the socket and releasing resources.
+
+**Challenge:** Ensuring proper cleanup to avoid dangling pointers.
+**Solution:** Closes the socket, deletes it safely using `deleteLater()`, and sets the pointer to `nullptr`.
 
 ## Questions
 
