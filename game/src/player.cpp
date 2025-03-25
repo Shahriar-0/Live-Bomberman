@@ -56,8 +56,8 @@ void Player::keyPressEvent(QKeyEvent* event) {
     }
 
     if (event->key() == Qt::Key_Space) {
-        qDebug() << "fuck u";
-        qDebug() << "Player " << m_playerId << " placed a bomb (inside keyPressEvent).";
+        // qDebug() << "fuck u";
+        // qDebug() << "Player " << m_playerId << " placed a bomb (inside keyPressEvent).";
         placeBomb();
         emit playerPlacedBomb(m_playerId);
         return;
