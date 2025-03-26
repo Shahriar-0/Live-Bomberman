@@ -52,7 +52,7 @@ void Game::setupNetwork() {
     connect(m_networkManager, &NetworkManager::errorOccurred, this, &Game::errorOccurred);
 
     if (protocol == "UDP" && role == NetworkManager::Client) {
-        onConnectionStatusChanged(true);
+        emit m_networkManager->connectionStatusChanged(true);
     }
 }
 
@@ -99,8 +99,8 @@ void Game::onConnectionStatusChanged(bool connected) {
         if (m_networkManager->role() == NetworkManager::Client) {
             QJsonObject message;
             message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::ConnectionStatus);
-            message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = 2;
-            message[messageFieldToString(MESSAGE_FIELD::Key)] = "Hello from Player 2!";
+            message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = 2; //should change this
+            message[messageFieldToString(MESSAGE_FIELD::Key)] = "Hello from Player 2!"; //change this
             m_networkManager->sendData(message);
         }
     }
