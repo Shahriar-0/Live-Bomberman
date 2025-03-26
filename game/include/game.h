@@ -41,6 +41,7 @@ private:
     void setFocusOnPlayer();
     void setupNetwork();
     void connectPlayerSignals(QPointer<Player> player);
+    void gameOver(int diedPlayerId);
 
     GameView* m_gameView;
     QTimer* gameTimer;

@@ -1,3 +1,7 @@
+#include <QMessageBox>
+#include <QTimer>
+#include <QApplication>
+
 #include "../include/game.h"
 
 #include "../include/tcpmanager.h"
@@ -56,6 +60,7 @@ void Game::onDataReceived(const QJsonObject& data) {
     case MESSAGE_TYPE::PlayerDied:
         qDebug() << "Player " << playerId << " died.";
         player->die();
+        gameOver(playerId);
         break;
     case MESSAGE_TYPE::PlayerMoved:
         qDebug() << "Player " << playerId << " moved.";
@@ -134,7 +139,18 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
     connect(player, &Player::playerDied, this, &Game::playerDied, Qt::UniqueConnection);
     connect(player, &Player::playerMoved, this, &Game::playerMoved, Qt::UniqueConnection);
     connect(player, &Player::playerPlacedBomb, this, &Game::playerPlacedBomb, Qt::UniqueConnection);
+    // connect(player, &Player::playerDied, this, &Game::gameOver, Qt::UniqueConnection);
 }
+
+void Game::gameOver(int diedPlayerId) {
+    int winnerId = (diedPlayerId == 1) ? 2 : 1;
+
+    qDebug() << "Player " << winnerId << " is the winner!";
+    QMessageBox::information(nullptr, "Game Over",
+                             QString("Player %1 is the winner!").arg(winnerId));
+    QTimer::singleShot(500, qApp, &QCoreApplication::quit);
+}
+
 
 void Game::playerDied(int playerId) {
     qDebug() << "Player " << playerId << " died.";
@@ -144,6 +160,7 @@ void Game::playerDied(int playerId) {
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
 
         m_networkManager->sendData(message);
+        gameOver(playerId);
     }
 }
 
