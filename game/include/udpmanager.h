@@ -13,7 +13,7 @@ public:
     explicit UDPManager(QObject* parent = nullptr);
     ~UDPManager();
 
-    void initialize(Role role, const QString& address, quint16 port) override;
+    bool initialize(Role role, const QString& address, quint16 port) override;
     void sendData(const QJsonObject& data) override;
     void stop() override;
 

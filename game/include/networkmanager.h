@@ -22,7 +22,7 @@ public:
 
     virtual ~NetworkManager() = default;
 
-    virtual void initialize(Role role, const QString& address, quint16 port) = 0;
+    virtual bool initialize(Role role, const QString& address, quint16 port) = 0;
     virtual void sendData(const QJsonObject& data) = 0;
     virtual void stop() = 0;
 

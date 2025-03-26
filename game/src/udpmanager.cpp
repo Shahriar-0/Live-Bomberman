@@ -12,37 +12,36 @@ UDPManager::~UDPManager() {
     // m_networkThread.wait();
 }
 
-void UDPManager::initialize(Role role, const QString& address, quint16 port) {
+bool UDPManager::initialize(Role role, const QString& address, quint16 port) {
     m_role = role;
     m_address = address;
     m_port = port;
+    bool success = false;
 
-    QMetaObject::invokeMethod(this, [this]() {
+    QMetaObject::invokeMethod(this, [this, &success]() {
         m_socket = new QUdpSocket(this);
         connect(m_socket, &QUdpSocket::readyRead, this, &UDPManager::onReadyRead);
         connect(m_socket, &QUdpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
 
         if (m_role == Server) {
-            if (!m_socket->bind(QHostAddress::Any, m_port)) {
+            success = m_socket->bind(QHostAddress::Any, m_port);
+            if (!success) {
                 emit errorOccurred(m_socket->errorString());
-                return;
             }
-
             qDebug() << "UDP Server bound to port" << m_port;
-        }
-        else {
-            // Client binds to any available port to receive responses
-            if (!m_socket->bind()) {
+        } else {
+            success = m_socket->bind();
+            if (!success) {
                 emit errorOccurred(m_socket->errorString());
-                return;
             }
-
             qDebug() << "UDP Client bound to port" << m_socket->localPort();
         }
     });
 
-    qDebug() << "UDPManager initialized";
+    qDebug() << "UDPManager initialized with role" << (m_role == Server ? "Server" : "Client");
+    return success;
 }
+
 
 void UDPManager::onReadyRead() {
     while (m_socket->hasPendingDatagrams()) {
