@@ -26,16 +26,27 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
 }
 
 void Game::setupNetwork() {
-    NetworkManager::Role role = (selectedPlayer == 1) ? NetworkManager::Server : NetworkManager::Client;
-    QString address = (role == NetworkManager::Server) ? QString() : "127.0.0.1";
     quint16 port = 12345;
+    QString address = "127.0.0.1";
+    NetworkManager::Role role = NetworkManager::Server; // Default to Server
 
-    if (protocol == "TCP")
+    if (protocol == "TCP") {
         m_networkManager = new TCPManager(this);
-    else if (protocol == "UDP")
+    } else if (protocol == "UDP") {
         m_networkManager = new UDPManager(this);
+    }
 
-    m_networkManager->initialize(role, address, port);
+    // Try to initialize as Server
+    if (!m_networkManager->initialize(role, address, port)) {
+        // If server initialization fails, switch to Client
+        qDebug() << "Server initialization failed. Joining as a client.";
+        role = NetworkManager::Client;
+        if (!m_networkManager->initialize(role, address, port)) {
+            qDebug() << "Client initialization failed as well!";
+            return; // Critical failure
+        }
+    }
+
     connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &Game::onConnectionStatusChanged);
     connect(m_networkManager, &NetworkManager::dataReceived, this, &Game::onDataReceived);
     connect(m_networkManager, &NetworkManager::errorOccurred, this, &Game::errorOccurred);
@@ -44,6 +55,8 @@ void Game::setupNetwork() {
         onConnectionStatusChanged(true);
     }
 }
+
+
 
 void Game::onDataReceived(const QJsonObject& data) {
     qDebug() << "Data received:" << data;
