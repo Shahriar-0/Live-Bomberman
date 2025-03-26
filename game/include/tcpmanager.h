@@ -13,7 +13,7 @@ public:
     explicit TCPManager(QObject* parent = nullptr);
     ~TCPManager();
 
-    void initialize(Role role, const QString& address, quint16 port) override;
+    bool initialize(Role role, const QString& address, quint16 port) override;
     void sendData(const QJsonObject& data) override;
     void stop() override;
 
@@ -23,8 +23,8 @@ private slots:
     void onDisconnected();
 
 private:
-    void setupServer();
-    void setupClient();
+    bool setupServer();
+    bool setupClient();
 
     QTcpServer* m_server;
     QTcpSocket* m_socket;

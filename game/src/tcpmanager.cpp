@@ -13,31 +13,39 @@ TCPManager::~TCPManager() {
     // m_networkThread.wait();
 }
 
-void TCPManager::initialize(Role role, const QString& address, quint16 port) {
+bool TCPManager::initialize(Role role, const QString& address, quint16 port) {
     m_role = role;
     m_address = address;
     m_port = port;
+    bool success = false;
 
-    QMetaObject::invokeMethod(this, [this]() {
-        if (m_role == Server) setupServer();
-        else setupClient();
+    QMetaObject::invokeMethod(this, [this, &success]() {
+        if (m_role == Server) {
+            success = setupServer();
+        } else {
+            success = setupClient();
+        }
     });
 
-    qDebug() << "TCPManager initialized";
+    qDebug() << "TCPManager initialized with role" << (m_role == Server ? "Server" : "Client");
+    return success;
 }
 
-void TCPManager::setupServer() {
+bool TCPManager::setupServer() {
     m_server = new QTcpServer(this);
     qDebug() << "Server created";
     connect(m_server, &QTcpServer::newConnection, this, &TCPManager::onNewConnection);
 
-    if (!m_server->listen(QHostAddress::Any, m_port))
+    if (!m_server->listen(QHostAddress::Any, m_port)) {
         emit errorOccurred(m_server->errorString());
+        return false;
+    }
 
     qDebug() << "Server started";
+    return true;
 }
 
-void TCPManager::setupClient() {
+bool TCPManager::setupClient() {
     m_socket = new QTcpSocket(this);
     connect(m_socket, &QTcpSocket::connected, this, [this]() { emit connectionStatusChanged(true); });
     connect(m_socket, &QTcpSocket::errorOccurred, this, [this](QAbstractSocket::SocketError error) { emit errorOccurred(m_socket->errorString()); });
@@ -45,6 +53,12 @@ void TCPManager::setupClient() {
     connect(m_socket, &QTcpSocket::disconnected, this, &TCPManager::onDisconnected);
 
     m_socket->connectToHost(m_address, m_port);
+    if (!m_socket->waitForConnected(3000)) { // Wait 3 seconds for connection
+        qDebug() << "Client connection failed";
+        return false;
+    }
+
+    return true;
 }
 
 void TCPManager::onNewConnection() {
