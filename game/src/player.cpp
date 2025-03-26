@@ -47,6 +47,8 @@ void Player::die() {
             scene()->removeItem(this);
         delete this;
     });
+
+    emit playerDied(m_playerId);
 }
 
 void Player::keyPressEvent(QKeyEvent* event) {
