@@ -6,23 +6,7 @@
 GameNetworkManager::GameNetworkManager(int selectedPlayer, const QString& protocol, QObject* parent)
     : QObject(parent), m_networkManager(nullptr), protocol(protocol), selectedPlayer(selectedPlayer) {}
 
-void GameNetworkManager::onConnectionStatusChanged(bool connected) {
-    qDebug() << "Connection status changed:" << connected;
-    if (connected) {
-        qDebug() << "Connected to peer.";
-        if (m_networkManager->role() == NetworkManager::Client) {
-            QJsonObject message;
-            message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::ConnectionStatus);
-            m_networkManager->sendData(message);
-        }
-    }
-    else {
-        qDebug() << "Disconnected from peer.";
-    }
-}
-
 void GameNetworkManager::setup() {
-        qDebug() << protocol;
     quint16 port = 12345;
     QString address = "127.0.0.1";
     NetworkManager::Role role = NetworkManager::Server;
@@ -42,12 +26,50 @@ void GameNetworkManager::setup() {
         }
     }
 
-    connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &GameNetworkManager::onConnectionStatusChanged);
-    connect(m_networkManager, &NetworkManager::dataReceived, this, &GameNetworkManager::onDataReceived);
-    connect(m_networkManager, &NetworkManager::errorOccurred, this, &GameNetworkManager::onErrorOccurred);
+    connectNetworkSignals();
 
     if (protocol == "UDP" && role == NetworkManager::Client) {
         emit m_networkManager->connectionStatusChanged(true);
+    }
+}
+
+void GameNetworkManager::connectNetworkSignals(){
+    connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &GameNetworkManager::onConnectionStatusChanged);
+    connect(m_networkManager, &NetworkManager::dataReceived, this, &GameNetworkManager::onDataReceived);
+    connect(m_networkManager, &NetworkManager::errorOccurred, this, &GameNetworkManager::onErrorOccurred);
+}
+
+void GameNetworkManager::onPlayerDied(int playerId) {
+    qDebug() << "Player " << playerId << " died.";
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+
+        m_networkManager->sendData(message);
+    }
+}
+
+void GameNetworkManager::onPlayerMoved(int playerId, Qt::Key key, bool isPressed) {
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+        message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
+        message[messageFieldToString(MESSAGE_FIELD::IsPressed)] = isPressed;
+
+        m_networkManager->sendData(message);
+    }
+}
+
+void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
+    qDebug() << "Player " << playerId << " placed a bomb.";
+    if (playerId == selectedPlayer) {
+        QJsonObject message;
+        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
+        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+
+        m_networkManager->sendData(message);
     }
 }
 
@@ -73,6 +95,25 @@ void GameNetworkManager::onDataReceived(const QJsonObject& data) {
     default:
         break;
     }
+}
+
+void GameNetworkManager::onConnectionStatusChanged(bool connected) {
+    qDebug() << "Connection status changed:" << connected;
+    if (connected) {
+        qDebug() << "Connected to peer.";
+        if (m_networkManager->role() == NetworkManager::Client) {
+            QJsonObject message;
+            message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::ConnectionStatus);
+            m_networkManager->sendData(message);
+        }
+    }
+    else {
+        qDebug() << "Disconnected from peer.";
+    }
+}
+
+void GameNetworkManager::onErrorOccurred(const QString& message) {
+    qDebug() << "Error occurred:" << message;
 }
 
 QString GameNetworkManager::messageTypeToString(MESSAGE_TYPE type) {
@@ -127,43 +168,4 @@ GameNetworkManager::MESSAGE_FIELD GameNetworkManager::stringToMessageField(const
     if (field == "isPressed")
         return MESSAGE_FIELD::IsPressed;
     return MESSAGE_FIELD::FieldError;
-}
-
-void GameNetworkManager::onErrorOccurred(const QString& message) {
-    qDebug() << "Error occurred:" << message;
-}
-
-void GameNetworkManager::onPlayerDied(int playerId) {
-    qDebug() << "Player " << playerId << " died.";
-    if (playerId == selectedPlayer) {
-        QJsonObject message;
-        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
-        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-
-        m_networkManager->sendData(message);
-        // gameOver(playerId);
-    }
-}
-
-void GameNetworkManager::onPlayerMoved(int playerId, Qt::Key key, bool isPressed) {
-    if (playerId == selectedPlayer) {
-        QJsonObject message;
-        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);
-        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-        message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
-        message[messageFieldToString(MESSAGE_FIELD::IsPressed)] = isPressed;
-
-        m_networkManager->sendData(message);
-    }
-}
-
-void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
-    qDebug() << "Player " << playerId << " placed a bomb.";
-    if (playerId == selectedPlayer) {
-        QJsonObject message;
-        message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
-        message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-
-        m_networkManager->sendData(message);
-    }
 }

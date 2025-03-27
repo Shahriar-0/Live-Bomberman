@@ -7,7 +7,6 @@ TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
     // m_networkThread.start();
 }
 
-
 TCPManager::~TCPManager() {
     stop();
     // m_networkThread.quit();

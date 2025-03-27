@@ -10,7 +10,6 @@
 
 #include "networkmanager.h"
 
-
 class GameNetworkManager : public QObject {
     Q_OBJECT
 public:
@@ -33,6 +32,8 @@ private slots:
     void onErrorOccurred(const QString& message);
 
 private:
+    void connectNetworkSignals();
+
     enum MESSAGE_TYPE {
         PlayerMoved,
         PlayerDied,

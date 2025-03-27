@@ -20,20 +20,24 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     hud = new HUD(m_gameView->scene(), bgSize.width());
 
     connectNetworkSignals();
-
     m_gameNetworkManager->setup();
-    connectGameTimer();
-}
 
-void Game::connectGameTimer() {
-    connect(gameTimer, &QTimer::timeout, this, &Game::update);
-    gameTimer->setInterval(1000 / FrameRate);
+    connectGameTimer();
 }
 
 void Game::start() {
     loadMap();
     setFocusOnPlayer();
     gameTimer->start();
+}
+
+void Game::addPlayer(Player* player) {
+    players.append(player);
+}
+
+void Game::connectGameTimer() {
+    connect(gameTimer, &QTimer::timeout, this, &Game::update);
+    gameTimer->setInterval(1000 / FrameRate);
 }
 
 void Game::loadMap() {
@@ -70,7 +74,6 @@ void Game::connectNetworkSignals() {
     connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb, Qt::UniqueConnection);
 }
 
-
 void Game::connectPlayerSignals(QPointer<Player> player) {
     connect(player, &Player::playerDied, m_gameNetworkManager, &GameNetworkManager::onPlayerDied, Qt::UniqueConnection);
     connect(player, &Player::playerDied, this, &Game::gameOver, Qt::UniqueConnection);
@@ -79,12 +82,21 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 }
 
 void Game::gameOver(int diedPlayerId) {
-    int winnerId = (diedPlayerId == 1) ? 2 : 1;
+        int winnerId = (diedPlayerId == 1) ? 2 : 1;
 
-    qDebug() << "Player " << winnerId << " is the winner!";
-    QMessageBox::information(nullptr, "Game Over",
-                             QString("Player %1 is the winner!").arg(winnerId));
-    QTimer::singleShot(500, qApp, &QCoreApplication::quit);
+        qDebug() << "Player " << winnerId << " is the winner!";
+        QMessageBox::information(nullptr, "Game Over",
+                                 QString("Player %1 is the winner!").arg(winnerId));
+        QTimer::singleShot(500, qApp, &QCoreApplication::quit);
+}
+
+QPointer<Player> Game::getPlayerById(int playerId) {
+    for (const QPointer<Player>& player : players) {
+        if (player && player->getPlayerId() == playerId) {
+            return player;
+        }
+    }
+    return nullptr;
 }
 
 void Game::update() {
@@ -102,25 +114,11 @@ void Game::update() {
     hud->updateHealth(players);
 }
 
-void Game::addPlayer(Player* player) {
-    players.append(player);
-}
-
-QPointer<Player> Game::getPlayerById(int playerId) {
-    for (const QPointer<Player>& player : players) {
-        if (player && player->getPlayerId() == playerId) {
-            return player;
-        }
-    }
-    return nullptr;
-}
-
 void Game::handlePlayerDied(int playerId) {
     qDebug() << "Player " << playerId << " died.";
     QPointer<Player> player = getPlayerById(playerId);
     if (player) {
         player->die();
-        gameOver(playerId);
     }
 }
 
