@@ -13,6 +13,7 @@ SOURCES += \
     src/breakableblock.cpp \
     src/explosioneffect.cpp \
     src/game.cpp \
+    src/gameNetworkManager.cpp \
     src/gameobject.cpp \
     src/gameview.cpp \
     src/hud.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     include/breakableblock.h \
     include/explosioneffect.h \
     include/game.h \
+    include/gameNetworkManager.h \
     include/gameobject.h \
     include/gameview.h \
     include/hud.h \
@@ -40,7 +42,7 @@ HEADERS += \
     include/settingsdialog.h \
     include/networkmanager.h \
     include/tcpmanager.h \
-    include/udpmanager.h
+    include/udpmanager.h \
 
 # Resource file
 RESOURCES += \
