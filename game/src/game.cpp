@@ -20,6 +20,7 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     hud = new HUD(m_gameView->scene(), bgSize.width());
 
     connectNetworkSignals();
+
     m_gameNetworkManager->setup();
     connectGameTimer();
 }
@@ -63,16 +64,18 @@ void Game::setFocusOnPlayer() {
     }
 }
 
-void Game::connectNetworkSignals(){
-    connect(m_gameNetworkManager, &GameNetworkManager::playerDied, this, &Game::handlePlayerDied);
-    connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved);
-    connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb);}
+void Game::connectNetworkSignals() {
+    connect(m_gameNetworkManager, &GameNetworkManager::playerDied, this, &Game::handlePlayerDied, Qt::UniqueConnection);
+    connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved, Qt::UniqueConnection);
+    connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb, Qt::UniqueConnection);
+}
+
 
 void Game::connectPlayerSignals(QPointer<Player> player) {
-    connect(player, &Player::playerDied, m_gameNetworkManager, &GameNetworkManager::playerDied, Qt::UniqueConnection);
+    connect(player, &Player::playerDied, m_gameNetworkManager, &GameNetworkManager::onPlayerDied, Qt::UniqueConnection);
     connect(player, &Player::playerDied, this, &Game::gameOver, Qt::UniqueConnection);
-    connect(player, &Player::playerMoved, m_gameNetworkManager, &GameNetworkManager::playerMoved, Qt::UniqueConnection);
-    connect(player, &Player::playerPlacedBomb, m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, Qt::UniqueConnection);
+    connect(player, &Player::playerMoved, m_gameNetworkManager, &GameNetworkManager::onPlayerMoved, Qt::UniqueConnection);
+    connect(player, &Player::playerPlacedBomb, m_gameNetworkManager, &GameNetworkManager::onPlayerPlacedBomb, Qt::UniqueConnection);
 }
 
 void Game::gameOver(int diedPlayerId) {

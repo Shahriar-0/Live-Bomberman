@@ -146,7 +146,6 @@ void GameNetworkManager::onPlayerDied(int playerId) {
 }
 
 void GameNetworkManager::onPlayerMoved(int playerId, Qt::Key key, bool isPressed) {
-    qDebug() << "Player " << playerId << " moved.";
     if (playerId == selectedPlayer) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerMoved);

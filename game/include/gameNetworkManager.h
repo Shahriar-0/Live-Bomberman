@@ -33,7 +33,6 @@ private slots:
     void onErrorOccurred(const QString& message);
 
 private:
-
     enum MESSAGE_TYPE {
         PlayerMoved,
         PlayerDied,
@@ -54,7 +53,6 @@ private:
     QString messageFieldToString(MESSAGE_FIELD field);
     MESSAGE_TYPE stringToMessageType(const QString& type);
     MESSAGE_FIELD stringToMessageField(const QString& field);
-
 
     NetworkManager* m_networkManager;
     QString protocol;
