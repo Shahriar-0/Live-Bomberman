@@ -1,15 +1,10 @@
 #include "../include/tcpmanager.h"
 
-TCPManager::TCPManager(QObject* parent) : NetworkManager(parent), m_server(nullptr), m_socket(nullptr) {
-    qDebug() << "TCPManager constructor called.";
-    m_server = new QTcpServer(this);
-    if (!m_server) {
-        qDebug() << "Error: Failed to allocate memory for m_server!";
-    }
-    m_socket = new QTcpSocket(this);
-    if (!m_socket) {
-        qDebug() << "Error: Failed to allocate memory for m_socket!";
-    }
+TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
+                                          m_server(nullptr),
+                                          m_socket(nullptr) {
+    // moveToThread(&m_networkThread);
+    // m_networkThread.start();
 }
 
 
