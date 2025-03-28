@@ -30,11 +30,13 @@ public:
 
 public slots:
     void update();
+    void updatePlayerState(int playerId, qreal x, qreal y, int health);  // New slot to apply state updates
+    void handleStateUpdateReceived(int sequenceNumber);                 // New slot to track received sequence
 
 private slots:
-void handlePlayerDied(int playerId);
-void handlePlayerMoved(int playerId, int key, bool isPressed);
-void handlePlayerPlacedBomb(int playerId);
+    void handlePlayerDied(int playerId);
+    void handlePlayerMoved(int playerId, int key, bool isPressed);
+    void handlePlayerPlacedBomb(int playerId);
 
 private:
     void connectGameTimer();
@@ -56,6 +58,7 @@ private:
 
     QList<QPointer<Player>> players;
     static constexpr int FrameRate = 30;
+    int lastReceivedSequenceNumber = -1;  // Track the sequence number for received updates
 };
 
 #endif // GAME_H
