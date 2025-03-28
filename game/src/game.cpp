@@ -26,10 +26,8 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
 
     connectGameTimer();
 
-    if(protocol == "UDP") {
-        connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
-        stateUpdateTimer->start(1000);
-    }
+    connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
+    stateUpdateTimer->start(1000);
 }
 
 void Game::start() {

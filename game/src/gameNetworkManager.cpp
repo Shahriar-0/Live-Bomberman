@@ -66,8 +66,11 @@ void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+        message[messageFieldToString(MESSAGE_FIELD::SequenceNumber)] = bombSequenceNumber++;
 
-        m_networkManager->sendData(message);
+        for (int i = 0; i < 3; i++) {
+            m_networkManager->sendData(message);
+        }
     }
 }
 
@@ -87,6 +90,17 @@ void GameNetworkManager::sendUpdatedPlayerState(int playerId, qreal x, qreal y, 
 void GameNetworkManager::onDataReceived(const QJsonObject& data) {
     QString type = data[messageFieldToString(MESSAGE_FIELD::Type)].toString();
     MESSAGE_TYPE messageType = stringToMessageType(type);
+
+    int seqNum = data[messageFieldToString(MESSAGE_FIELD::SequenceNumber)].toInt();
+    
+    if (messageType == MESSAGE_TYPE::PlayerPlacedBomb && receivedBombSequenceNumbers.contains(seqNum)) {
+        qDebug() << "Duplicate bomb placement message received. Ignoring.";
+        return;
+    }
+
+    if (messageType == MESSAGE_TYPE::PlayerPlacedBomb) {
+        receivedBombSequenceNumbers.insert(seqNum);
+    }
 
     switch (messageType) {
     case MESSAGE_TYPE::PlayerDied:

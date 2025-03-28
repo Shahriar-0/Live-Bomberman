@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QJsonObject>
+#include <QSet>
 
 #include "networkmanager.h"
 
@@ -67,6 +68,9 @@ private:
     int selectedPlayer;
 
     int updateSequenceNumber = 0;
+    int bombSequenceNumber = 0;
+    
+    QSet<int> receivedBombSequenceNumbers;
 };
 
 #endif // GAMENETWORKMANAGER_H
