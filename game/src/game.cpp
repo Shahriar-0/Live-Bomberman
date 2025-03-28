@@ -11,7 +11,9 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
       mapLoader(new MapLoader()),
       m_gameNetworkManager(new GameNetworkManager(selectedPlayer, protocol, this)),
       protocol(protocol),
-      selectedPlayer(selectedPlayer) {
+      selectedPlayer(selectedPlayer),
+      stateUpdateTimer(new QTimer(this))
+{
     qDebug() << "Game started with selected player:" << selectedPlayer << "and protocol:" << protocol;
     m_gameView->initialize();
 
@@ -25,7 +27,7 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     connectGameTimer();
 
     connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
-    stateUpdateTimer->start(150);
+    stateUpdateTimer->start(1000);
 }
 
 void Game::start() {
@@ -81,7 +83,6 @@ void Game::connectNetworkSignals() {
     connect(this, &Game::playerStateReady, m_gameNetworkManager, &GameNetworkManager::sendUpdatedPlayerState);
 }
 
-
 void Game::connectPlayerSignals(QPointer<Player> player) {
     connect(player, &Player::playerDied, m_gameNetworkManager, &GameNetworkManager::onPlayerDied, Qt::UniqueConnection);
     connect(player, &Player::playerDied, this, &Game::gameOver, Qt::UniqueConnection);
@@ -90,12 +91,12 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 }
 
 void Game::gameOver(int diedPlayerId) {
-        int winnerId = (diedPlayerId == 1) ? 2 : 1;
+    int winnerId = (diedPlayerId == 1) ? 2 : 1;
 
-        qDebug() << "Player " << winnerId << " is the winner!";
-        QMessageBox::information(nullptr, "Game Over",
-                                 QString("Player %1 is the winner!").arg(winnerId));
-        QTimer::singleShot(500, qApp, &QCoreApplication::quit);
+    qDebug() << "Player " << winnerId << " is the winner!";
+    QMessageBox::information(nullptr, "Game Over",
+                             QString("Player %1 is the winner!").arg(winnerId));
+    QTimer::singleShot(500, qApp, &QCoreApplication::quit);
 }
 
 QPointer<Player> Game::getPlayerById(int playerId) {
@@ -169,7 +170,6 @@ void Game::emitPlayerState() {
         qreal x = player->pos().x();
         qreal y = player->pos().y();
         int health = player->getHealth();
-
         emit playerStateReady(selectedPlayer, x, y, health);
     }
 }
