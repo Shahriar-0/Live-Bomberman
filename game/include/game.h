@@ -25,6 +25,7 @@ class Game : public QObject {
 
 public:
     explicit Game(int selectedPlayer, const QString& protocol, QObject* parent = nullptr);
+    ~Game();
     void start();
     void addPlayer(Player* player);
 

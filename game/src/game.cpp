@@ -33,6 +33,11 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     stateUpdateTimer->start(250);
 }
 
+Game::~Game() {
+    m_networkThread->quit();
+    m_networkThread->wait();
+}
+
 void Game::start() {
     loadMap();
     setFocusOnPlayer();
