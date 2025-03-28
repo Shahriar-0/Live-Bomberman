@@ -4,7 +4,6 @@
 #include <QDebug>
 #include <QObject>
 #include <QPointer>
-#include <QTimer>
 #include <QJsonObject>
 
 #include "networkmanager.h"
@@ -33,7 +32,6 @@ private slots:
     void onDataReceived(const QJsonObject& data);
     void onConnectionStatusChanged(bool connected);
     void onErrorOccurred(const QString& message);
-    void sendPlayerStateUpdate();
 
 private:
     void connectNetworkSignals();
@@ -68,7 +66,6 @@ private:
     QString protocol;
     int selectedPlayer;
 
-    QTimer* updateTimer;
     int updateSequenceNumber = 0;
 };
 

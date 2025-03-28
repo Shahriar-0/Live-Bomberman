@@ -31,10 +31,6 @@ void GameNetworkManager::setup() {
     if (protocol == "UDP" && role == NetworkManager::Client) {
         emit m_networkManager->connectionStatusChanged(true);
     }
-
-    updateTimer = new QTimer(this);
-    connect(updateTimer, &QTimer::timeout, this, &GameNetworkManager::sendPlayerStateUpdate);
-    updateTimer->start(150); // Send updates every 150 ms
 }
 
 void GameNetworkManager::connectNetworkSignals() {
@@ -60,7 +56,7 @@ void GameNetworkManager::onPlayerMoved(int playerId, Qt::Key key, bool isPressed
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
         message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
         message[messageFieldToString(MESSAGE_FIELD::IsPressed)] = isPressed;
-        
+
         m_networkManager->sendData(message);
     }
 }
@@ -70,7 +66,7 @@ void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-        
+
         m_networkManager->sendData(message);
     }
 }
@@ -83,18 +79,6 @@ void GameNetworkManager::sendUpdatedPlayerState(int playerId, qreal x, qreal y, 
     stateUpdate[messageFieldToString(MESSAGE_FIELD::X)] = x;
     stateUpdate[messageFieldToString(MESSAGE_FIELD::Y)] = y;
     stateUpdate[messageFieldToString(MESSAGE_FIELD::Health)] = health;
-
-    emit stateUpdateReceived(updateSequenceNumber);
-    m_networkManager->sendData(stateUpdate);
-}
-
-
-void GameNetworkManager::sendPlayerStateUpdate() {
-    QJsonObject stateUpdate;
-    stateUpdate[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerStateUpdate);
-    stateUpdate[messageFieldToString(MESSAGE_FIELD::SequenceNumber)] = updateSequenceNumber++;
-    stateUpdate[messageFieldToString(MESSAGE_FIELD::PlayerId)] = selectedPlayer;
-    stateUpdate[messageFieldToString(MESSAGE_FIELD::Health)] = 3;
 
     emit stateUpdateReceived(updateSequenceNumber);
     m_networkManager->sendData(stateUpdate);
@@ -138,8 +122,7 @@ void GameNetworkManager::onConnectionStatusChanged(bool connected) {
             message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::ConnectionStatus);
             m_networkManager->sendData(message);
         }
-    }
-    else {
+    } else {
         qDebug() << "Disconnected from peer.";
     }
 }
