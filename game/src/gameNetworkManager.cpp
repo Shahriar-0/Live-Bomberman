@@ -80,8 +80,9 @@ void GameNetworkManager::sendPlayerStateUpdate() {
     stateUpdate[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerStateUpdate);
     stateUpdate[messageFieldToString(MESSAGE_FIELD::SequenceNumber)] = updateSequenceNumber++;
     stateUpdate[messageFieldToString(MESSAGE_FIELD::PlayerId)] = selectedPlayer;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::Health)] = 3;
 
-    emit stateUpdateReceived(updateSequenceNumber); // Notify Game for update sequence
+    emit stateUpdateReceived(updateSequenceNumber);
     m_networkManager->sendData(stateUpdate);
 }
 
