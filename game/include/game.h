@@ -23,10 +23,15 @@ class HUD;
 class Game : public QObject {
     Q_OBJECT
 
+
+
 public:
     explicit Game(int selectedPlayer, const QString& protocol, QObject* parent = nullptr);
     void start();
     void addPlayer(Player* player);
+
+signals:
+    void playerStateReady(int playerId, qreal x, qreal y, int health);
 
 public slots:
     void update();
@@ -37,6 +42,7 @@ private slots:
     void handlePlayerDied(int playerId);
     void handlePlayerMoved(int playerId, int key, bool isPressed);
     void handlePlayerPlacedBomb(int playerId);
+    void emitPlayerState();
 
 private:
     void connectGameTimer();
@@ -59,6 +65,8 @@ private:
     QList<QPointer<Player>> players;
     static constexpr int FrameRate = 30;
     int lastReceivedSequenceNumber = -1;  // Track the sequence number for received updates
+
+    QTimer* stateUpdateTimer;
 };
 
 #endif // GAME_H

@@ -23,6 +23,9 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     m_gameNetworkManager->setup();
 
     connectGameTimer();
+
+    connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
+    stateUpdateTimer->start(150);
 }
 
 void Game::start() {
@@ -72,10 +75,12 @@ void Game::connectNetworkSignals() {
     connect(m_gameNetworkManager, &GameNetworkManager::playerDied, this, &Game::handlePlayerDied);
     connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved);
     connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb);
-
     connect(m_gameNetworkManager, &GameNetworkManager::playerStateUpdated, this, &Game::updatePlayerState);
     connect(m_gameNetworkManager, &GameNetworkManager::stateUpdateReceived, this, &Game::handleStateUpdateReceived);
+
+    connect(this, &Game::playerStateReady, m_gameNetworkManager, &GameNetworkManager::sendUpdatedPlayerState);
 }
+
 
 void Game::connectPlayerSignals(QPointer<Player> player) {
     connect(player, &Player::playerDied, m_gameNetworkManager, &GameNetworkManager::onPlayerDied, Qt::UniqueConnection);
@@ -155,5 +160,16 @@ void Game::handleStateUpdateReceived(int sequenceNumber) {
         qDebug() << "Updated to sequence number:" << sequenceNumber;
     } else {
         qDebug() << "Ignored outdated update. Current seq:" << lastReceivedSequenceNumber;
+    }
+}
+
+void Game::emitPlayerState() {
+    QPointer<Player> player = getPlayerById(selectedPlayer);
+    if (player) {
+        qreal x = player->pos().x();
+        qreal y = player->pos().y();
+        int health = player->getHealth();
+
+        emit playerStateReady(selectedPlayer, x, y, health);
     }
 }
