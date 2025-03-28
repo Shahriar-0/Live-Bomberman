@@ -1,12 +1,9 @@
 # CN CA1 - Bomberman Game with Socket Programming in QT
 
-Welcome to the CN CA1 repository! This project is part of the Computer Networks course and serves as a practical assignment where students develop a 2-player game similar to Bomberman using the QT framework. The project requires the implementation of both UDP and TCP protocols for communication between the game clients and server.
+This project serves as a practical assignment for the **Computer Networks** course. The goal is to develop a **2-player game** similar to Bomberman using the **QT framework** and implement both **UDP and TCP protocols** for communication between the game clients and the server. We will learn how real-time network communication works in multiplayer games and learn how different protocols can be used to achieve communication goals in gaming environments.
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Requirements](#requirements)
 - [Overview of Classes and Their Communication](#overview-of-classes-and-their-communication)
   - [NetworkManager (Base Class)](#networkmanager-base-class)
   - [TCPManager](#tcpmanager)
@@ -36,25 +33,6 @@ Welcome to the CN CA1 repository! This project is part of the Computer Networks 
   - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
   - [3. In what situations is TCP a better choice than UDP, and vice versa?](#3-in-what-situations-is-tcp-a-better-choice-than-udp-and-vice-versa)
   - [4. Why is UDP a common choice for multiplayer games like Bomberman?](#4-why-is-udp-a-common-choice-for-multiplayer-games-like-bomberman)
-
-## Introduction
-
-This project serves as a practical assignment for the **Computer Networks** course. The goal is to develop a **2-player game** similar to Bomberman using the **QT framework** and implement both **UDP and TCP protocols** for communication between the game clients and the server. Students will experience how real-time network communication works in multiplayer games and learn how different protocols can be used to achieve communication goals in gaming environments.
-
-## Features
-
-- **Multiplayer Game**: A real-time multiplayer game similar to **Bomberman**.
-- **Protocol Implementation**: Both **UDP** and **TCP** protocols are implemented for communication.
-- **Real-Time Communication**: The game supports real-time communication between clients and the server.
-- **User Interface**: The game utilizes the **QT framework** to create a simple and user-friendly interface.
-
-## Requirements
-
-To run this project, you will need the following:
-
-- **QT Framework** (version 5.15 or later)
-- **C++ Compiler**
-- **CMake** (optional, for building the project)
 
 ## Overview of Classes and Their Communication
 
