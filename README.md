@@ -1,6 +1,6 @@
 # CN CA1 - Bomberman Game with Socket Programming in QT
 
-This project serves as a practical assignment for the **Computer Networks** course. The goal is to develop a **2-player game** similar to Bomberman using the **QT framework** and implement both **UDP and TCP protocols** for communication between the game clients and the server. We will learn how real-time network communication works in multiplayer games and learn how different protocols can be used to achieve communication goals in gaming environments.
+This project serves as a practical assignment for the Computer Networks course. The objective is to develop a 2-player game similar to Bomberman using the Qt framework and implement both UDP and TCP protocols for communication between the game clients and the server. This hands-on project aims to help us understand how real-time network communication works in multiplayer games and how different protocols can be used to achieve communication goals in gaming environments.
 
 ## Table of Contents
 
