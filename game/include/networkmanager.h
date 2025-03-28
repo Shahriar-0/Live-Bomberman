@@ -34,7 +34,6 @@ signals:
 protected:
     explicit NetworkManager(QObject* parent = nullptr);
 
-    QThread m_networkThread;
     QString m_address;
     quint16 m_port;
     Role m_role;

@@ -8,12 +8,12 @@
 #include <QPointer>
 #include <QTimer>
 
+#include "gameNetworkManager.h"
 #include "gameview.h"
 #include "hud.h"
+#include "maploader.h"
 #include "networkmanager.h"
 #include "player.h"
-#include "gameNetworkManager.h"
-#include "maploader.h"
 
 class QTimer;
 class MapLoader;
@@ -55,6 +55,8 @@ private:
     QTimer* gameTimer;
     MapLoader* mapLoader;
     HUD* hud;
+
+    QThread* m_networkThread;
     GameNetworkManager* m_gameNetworkManager;
 
     QString protocol;

@@ -1,15 +1,10 @@
 #include "../include/udpmanager.h"
 
 UDPManager::UDPManager(QObject* parent) : NetworkManager(parent),
-                                          m_socket(nullptr) {
-    // moveToThread(&m_networkThread);
-    // m_networkThread.start();
-}
+                                          m_socket(nullptr) {}
 
 UDPManager::~UDPManager() {
     stop();
-    // m_networkThread.quit();
-    // m_networkThread.wait();
 }
 
 bool UDPManager::initialize(Role role, const QString& address, quint16 port) {

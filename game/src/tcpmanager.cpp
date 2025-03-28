@@ -2,15 +2,10 @@
 
 TCPManager::TCPManager(QObject* parent) : NetworkManager(parent),
                                           m_server(nullptr),
-                                          m_socket(nullptr) {
-    // moveToThread(&m_networkThread);
-    // m_networkThread.start();
-}
+                                          m_socket(nullptr) {}
 
 TCPManager::~TCPManager() {
     stop();
-    // m_networkThread.quit();
-    // m_networkThread.wait();
 }
 
 bool TCPManager::initialize(Role role, const QString& address, quint16 port) {

@@ -1,14 +1,15 @@
+#include "../include/game.h"
+
+#include <QApplication>
 #include <QMessageBox>
 #include <QTimer>
-#include <QApplication>
-
-#include "../include/game.h"
 
 Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     : QObject(parent),
       m_gameView(new GameView(this)),
       gameTimer(new QTimer(this)),
       mapLoader(new MapLoader()),
+      m_networkThread(new QThread(this)),
       m_gameNetworkManager(new GameNetworkManager(selectedPlayer, protocol, this)),
       protocol(protocol),
       selectedPlayer(selectedPlayer),
@@ -23,11 +24,13 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
 
     connectNetworkSignals();
     m_gameNetworkManager->setup();
+    m_gameNetworkManager->moveToThread(m_networkThread);
+    connect(m_networkThread, &QThread::finished, m_gameNetworkManager, &GameNetworkManager::deleteLater);
+    m_networkThread->start();
 
     connectGameTimer();
-
     connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
-    stateUpdateTimer->start(1000);
+    stateUpdateTimer->start(250);
 }
 
 void Game::start() {
@@ -159,7 +162,8 @@ void Game::handleStateUpdateReceived(int sequenceNumber) {
     if (sequenceNumber > lastReceivedSequenceNumber) {
         lastReceivedSequenceNumber = sequenceNumber;
         qDebug() << "Updated to sequence number:" << sequenceNumber;
-    } else {
+    }
+    else {
         qDebug() << "Ignored outdated update. Current seq:" << lastReceivedSequenceNumber;
     }
 }
