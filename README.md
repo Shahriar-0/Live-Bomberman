@@ -77,7 +77,7 @@ In our implementation, we created several key classes that work together to faci
    - **GameNetworkManager** acts as the bridge between the network layer and the game layer. It listens for signals from the **Player** class and then sends appropriate data to the network manager. It also handles incoming data and updates the game state accordingly by emitting signals for the **Game** class to process.
    - It communicates with the **Game** class via **signals and slots**. When network events occur , **GameNetworkManager** emits signals, which the **Game** class listens to in order to update the game state.
 
-### 5. **Player**
+5. **Player**
    - The **Player** class manages the player's **state** and **actions**. We **extended** this class by adding new signals to facilitate network communication. These signals notify the game when important actions occur:
      - `playerMoved` when the player moves, to update the other player’s position over the network.
      - `playerDied` when the player dies, allowing the game to notify other players about the player's death.
