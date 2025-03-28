@@ -14,7 +14,6 @@ class GameNetworkManager : public QObject {
 
 public:
     explicit GameNetworkManager(int selectedPlayer, const QString& protocol, QObject* parent = nullptr);
-    void setup();
 
 signals:
     void playerDied(int playerId);
@@ -24,6 +23,7 @@ signals:
     void stateUpdateReceived(int sequenceNumber);
 
 public slots:
+    void setup();
     void onPlayerDied(int playerId);
     void onPlayerMoved(int playerId, Qt::Key key, bool isPressed);
     void onPlayerPlacedBomb(int playerId);
@@ -69,7 +69,7 @@ private:
 
     int updateSequenceNumber = 0;
     int bombSequenceNumber = 0;
-    
+
     QSet<int> receivedBombSequenceNumbers;
 };
 

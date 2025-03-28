@@ -22,11 +22,11 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
     QSize bgSize = bgImage.size();
     hud = new HUD(m_gameView->scene(), bgSize.width());
 
-    connectNetworkSignals();
-    m_gameNetworkManager->setup();
     m_gameNetworkManager->moveToThread(m_networkThread);
     connect(m_networkThread, &QThread::finished, m_gameNetworkManager, &GameNetworkManager::deleteLater);
     m_networkThread->start();
+    connectNetworkSignals();
+    QMetaObject::invokeMethod(m_gameNetworkManager, "setup", Qt::QueuedConnection);
 
     connectGameTimer();
     connect(stateUpdateTimer, &QTimer::timeout, this, &Game::emitPlayerState);
