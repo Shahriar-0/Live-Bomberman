@@ -10,7 +10,7 @@ Game::Game(int selectedPlayer, const QString& protocol, QObject* parent)
       gameTimer(new QTimer(this)),
       mapLoader(new MapLoader()),
       m_networkThread(new QThread(this)),
-      m_gameNetworkManager(new GameNetworkManager(selectedPlayer, protocol, this)),
+      m_gameNetworkManager(new GameNetworkManager(selectedPlayer, protocol, nullptr)),
       protocol(protocol),
       selectedPlayer(selectedPlayer),
       stateUpdateTimer(new QTimer(this))
@@ -94,7 +94,7 @@ void Game::connectPlayerSignals(QPointer<Player> player) {
 }
 
 void Game::gameOver(int diedPlayerId) {
-    int winnerId = (diedPlayerId == 1) ? 2 : 1;
+    int winnerId = (diedPlayerId == 1) ? 2 : 1; // or 3 - diedPlayerId just because i respect clean coding
 
     qDebug() << "Player " << winnerId << " is the winner!";
     QMessageBox::information(nullptr, "Game Over",
