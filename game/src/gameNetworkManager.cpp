@@ -31,16 +31,19 @@ void GameNetworkManager::setup() {
     if (protocol == "UDP" && role == NetworkManager::Client) {
         emit m_networkManager->connectionStatusChanged(true);
     }
+
+    updateTimer = new QTimer(this);
+    connect(updateTimer, &QTimer::timeout, this, &GameNetworkManager::sendPlayerStateUpdate);
+    updateTimer->start(150); // Send updates every 150 ms
 }
 
-void GameNetworkManager::connectNetworkSignals(){
+void GameNetworkManager::connectNetworkSignals() {
     connect(m_networkManager, &NetworkManager::connectionStatusChanged, this, &GameNetworkManager::onConnectionStatusChanged);
     connect(m_networkManager, &NetworkManager::dataReceived, this, &GameNetworkManager::onDataReceived);
     connect(m_networkManager, &NetworkManager::errorOccurred, this, &GameNetworkManager::onErrorOccurred);
 }
 
 void GameNetworkManager::onPlayerDied(int playerId) {
-    qDebug() << "Player " << playerId << " died.";
     if (playerId == selectedPlayer) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerDied);
@@ -57,40 +60,54 @@ void GameNetworkManager::onPlayerMoved(int playerId, Qt::Key key, bool isPressed
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
         message[messageFieldToString(MESSAGE_FIELD::Key)] = key;
         message[messageFieldToString(MESSAGE_FIELD::IsPressed)] = isPressed;
-
+        
         m_networkManager->sendData(message);
     }
 }
 
 void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
-    qDebug() << "Player " << playerId << " placed a bomb.";
     if (playerId == selectedPlayer) {
         QJsonObject message;
         message[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerPlacedBomb);
         message[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
-
+        
         m_networkManager->sendData(message);
     }
 }
 
+void GameNetworkManager::sendPlayerStateUpdate() {
+    QJsonObject stateUpdate;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerStateUpdate);
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::SequenceNumber)] = updateSequenceNumber++;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::PlayerId)] = selectedPlayer;
+
+    emit stateUpdateReceived(updateSequenceNumber); // Notify Game for update sequence
+    m_networkManager->sendData(stateUpdate);
+}
+
 void GameNetworkManager::onDataReceived(const QJsonObject& data) {
-    qDebug() << "Data received:" << data;
-
     QString type = data[messageFieldToString(MESSAGE_FIELD::Type)].toString();
-    int playerId = data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt();
-    int key = data[messageFieldToString(MESSAGE_FIELD::Key)].toInt();
-    bool isPressed = data[messageFieldToString(MESSAGE_FIELD::IsPressed)].toBool();
-
     MESSAGE_TYPE messageType = stringToMessageType(type);
+
     switch (messageType) {
     case MESSAGE_TYPE::PlayerDied:
-        emit playerDied(playerId);
+        emit playerDied(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt());
         break;
     case MESSAGE_TYPE::PlayerMoved:
-        emit playerMoved(playerId, key, isPressed);
+        emit playerMoved(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt(),
+                         data[messageFieldToString(MESSAGE_FIELD::Key)].toInt(),
+                         data[messageFieldToString(MESSAGE_FIELD::IsPressed)].toBool());
         break;
     case MESSAGE_TYPE::PlayerPlacedBomb:
-        emit playerPlacedBomb(playerId);
+        emit playerPlacedBomb(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt());
+        break;
+    case MESSAGE_TYPE::PlayerStateUpdate:
+        emit playerStateUpdated(
+            data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt(),
+            data[messageFieldToString(MESSAGE_FIELD::X)].toDouble(),
+            data[messageFieldToString(MESSAGE_FIELD::Y)].toDouble(),
+            data[messageFieldToString(MESSAGE_FIELD::Health)].toInt()
+        );
         break;
     default:
         break;
@@ -126,6 +143,8 @@ QString GameNetworkManager::messageTypeToString(MESSAGE_TYPE type) {
         return "playerPlacedBomb";
     case MESSAGE_TYPE::ConnectionStatus:
         return "connectionStatus";
+    case MESSAGE_TYPE::PlayerStateUpdate:
+        return "playerStateUpdate";
     default:
         return "";
     }
@@ -140,6 +159,8 @@ GameNetworkManager::MESSAGE_TYPE GameNetworkManager::stringToMessageType(const Q
         return MESSAGE_TYPE::PlayerPlacedBomb;
     if (type == "connectionStatus")
         return MESSAGE_TYPE::ConnectionStatus;
+    if (type == "playerStateUpdate")
+        return MESSAGE_TYPE::PlayerStateUpdate;
     return MESSAGE_TYPE::TypeError;
 }
 
@@ -153,6 +174,14 @@ QString GameNetworkManager::messageFieldToString(MESSAGE_FIELD field) {
         return "key";
     case MESSAGE_FIELD::IsPressed:
         return "isPressed";
+    case MESSAGE_FIELD::SequenceNumber:
+        return "sequenceNumber";
+    case MESSAGE_FIELD::X:
+        return "x";
+    case MESSAGE_FIELD::Y:
+        return "y";
+    case MESSAGE_FIELD::Health:
+        return "health";
     default:
         return "";
     }
@@ -167,5 +196,13 @@ GameNetworkManager::MESSAGE_FIELD GameNetworkManager::stringToMessageField(const
         return MESSAGE_FIELD::Key;
     if (field == "isPressed")
         return MESSAGE_FIELD::IsPressed;
+    if (field == "sequenceNumber")
+        return MESSAGE_FIELD::SequenceNumber;
+    if (field == "x")
+        return MESSAGE_FIELD::X;
+    if (field == "y")
+        return MESSAGE_FIELD::Y;
+    if (field == "health")
+        return MESSAGE_FIELD::Health;
     return MESSAGE_FIELD::FieldError;
 }

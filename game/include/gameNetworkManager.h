@@ -2,11 +2,10 @@
 #define GAMENETWORKMANAGER_H
 
 #include <QDebug>
-#include <QList>
 #include <QObject>
-#include <QPixmap>
 #include <QPointer>
 #include <QTimer>
+#include <QJsonObject>
 
 #include "networkmanager.h"
 
@@ -20,6 +19,8 @@ signals:
     void playerDied(int playerId);
     void playerMoved(int playerId, int key, bool isPressed);
     void playerPlacedBomb(int playerId);
+    void playerStateUpdated(int playerId, qreal x, qreal y, int health);  // New signal
+    void stateUpdateReceived(int sequenceNumber);                        // Signal for state update received
 
 public slots:
     void onPlayerDied(int playerId);
@@ -30,6 +31,7 @@ private slots:
     void onDataReceived(const QJsonObject& data);
     void onConnectionStatusChanged(bool connected);
     void onErrorOccurred(const QString& message);
+    void sendPlayerStateUpdate();  // Send player state updates
 
 private:
     void connectNetworkSignals();
@@ -39,6 +41,7 @@ private:
         PlayerDied,
         PlayerPlacedBomb,
         ConnectionStatus,
+        PlayerStateUpdate,
         TypeError
     };
 
@@ -47,6 +50,10 @@ private:
         Key,
         IsPressed,
         Type,
+        SequenceNumber,
+        X,
+        Y,
+        Health,
         FieldError
     };
 
@@ -58,6 +65,9 @@ private:
     NetworkManager* m_networkManager;
     QString protocol;
     int selectedPlayer;
+
+    QTimer* updateTimer;                // Timer for periodic updates
+    int updateSequenceNumber = 0;       // Outgoing sequence number
 };
 
 #endif // GAMENETWORKMANAGER_H
