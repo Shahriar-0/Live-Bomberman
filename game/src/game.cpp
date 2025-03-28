@@ -69,9 +69,12 @@ void Game::setFocusOnPlayer() {
 }
 
 void Game::connectNetworkSignals() {
-    connect(m_gameNetworkManager, &GameNetworkManager::playerDied, this, &Game::handlePlayerDied, Qt::UniqueConnection);
-    connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved, Qt::UniqueConnection);
-    connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb, Qt::UniqueConnection);
+    connect(m_gameNetworkManager, &GameNetworkManager::playerDied, this, &Game::handlePlayerDied);
+    connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved);
+    connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb);
+
+    connect(m_gameNetworkManager, &GameNetworkManager::playerStateUpdated, this, &Game::updatePlayerState);
+    connect(m_gameNetworkManager, &GameNetworkManager::stateUpdateReceived, this, &Game::handleStateUpdateReceived);
 }
 
 void Game::connectPlayerSignals(QPointer<Player> player) {
@@ -135,5 +138,22 @@ void Game::handlePlayerPlacedBomb(int playerId) {
     QPointer<Player> player = getPlayerById(playerId);
     if (player) {
         player->placeBomb();
+    }
+}
+
+void Game::updatePlayerState(int playerId, qreal x, qreal y, int health) {
+    QPointer<Player> player = getPlayerById(playerId);
+    if (player) {
+        player->setPos(x, y);
+        player->setHealth(health);
+    }
+}
+
+void Game::handleStateUpdateReceived(int sequenceNumber) {
+    if (sequenceNumber > lastReceivedSequenceNumber) {
+        lastReceivedSequenceNumber = sequenceNumber;
+        qDebug() << "Updated to sequence number:" << sequenceNumber;
+    } else {
+        qDebug() << "Ignored outdated update. Current seq:" << lastReceivedSequenceNumber;
     }
 }
