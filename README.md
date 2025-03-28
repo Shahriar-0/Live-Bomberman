@@ -2,37 +2,37 @@
 
 Welcome to the CN CA1 repository! This project is part of the Computer Networks course and serves as a practical assignment where students develop a 2-player game similar to Bomberman using the QT framework. The project requires the implementation of both UDP and TCP protocols for communication between the game clients and server.
 
+Here is the Table of Contents based on your provided README file:
+
 ## Table of Contents
 
 - [Introduction](#introduction)
 - [Features](#features)
 - [Requirements](#requirements)
-- [TCP](#tcp)
-  - [Constructor](#constructor)
-  - [Destructor](#destructor)
-  - [initialize](#initialize)
-  - [setupServer](#setupserver)
-  - [setupClient](#setupclient)
-  - [onNewConnection](#onnewconnection)
-  - [onReadyRead](#onreadyread)
-  - [onDisconnected](#ondisconnected)
-  - [sendData](#senddata)
-  - [stop](#stop)
-- [UDP](#udp)
-  - [Constructor](#constructor-1)
-  - [Destructor](#destructor-1)
-  - [initialize](#initialize-1)
-  - [onReadyRead](#onreadyread-1)
-  - [sendData](#senddata-1)
-  - [stop](#stop-1)
-- [Game](#game)
-  - [Constructor](#constructor-2)
-  - [setupNetwork](#setupnetwork)
-  - [onDataReceived](#ondatareceived)
-  - [onConnectionStatusChanged](#onconnectionstatuschanged)
-  - [errorOccurred](#erroroccurred)
-  - [connectPlayerSignals (playerDied, playerMoved, playerPlacedBomb)](#connectplayersignals-playerdied-playermoved-playerplacedbomb)
-  - [update](#update)
+- [Overview of Classes and Their Communication](#overview-of-classes-and-their-communication)
+  - [NetworkManager (Base Class)](#networkmanager-base-class)
+  - [TCPManager](#tcpmanager)
+  - [UDPManager](#udpmanager)
+  - [GameNetworkManager](#gamenetworkmanager)
+  - [Player](#player)
+  - [Game](#game)
+- [Communication Flow Between Classes](#communication-flow-between-classes)
+  - [Player Class](#player-class)
+  - [GameNetworkManager Class](#gamenetworkmanager-class)
+  - [Game Class](#game-class)
+  - [Network Managers (TCPManager and UDPManager)](#network-managers-tcpmanager-and-udpmanager)
+- [TCPManager](#tcpmanager)
+  - [Fields](#fields)
+  - [Methods](#methods)
+- [UDPManager](#udpmanager)
+  - [Fields](#fields-1)
+  - [Methods](#methods-1)
+- [GameNetworkManager](#gamenetworkmanager-1)
+  - [Fields](#fields-2)
+  - [Methods](#methods-2)
+- [Game](#game-1)
+  - [Fields](#fields-3)
+  - [Methods](#methods-3)
 - [Questions](#questions)
   - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
   - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
@@ -101,125 +101,238 @@ In our implementation, we created several key classes that work together to faci
 
 4. **Network Managers (TCPManager and UDPManager)**: These classes handle the actual network communication. They listen for incoming data, parse the messages, and send them to the appropriate destination. They also handle connection management (e.g., establishing and maintaining connections for **TCP**, or managing the sending/receiving of packets for **UDP**).
 
-## TCP
+### **TCPManager:**
 
-### Constructor
+#### **Fields:**
+1. **m_server**:
+   - A pointer to a `QTcpServer` that listens for incoming connections from clients when the `NetworkManager` role is set to **Server**.
 
-**Purpose**: Initializes the TCP manager by setting up the necessary network components based on whether the role is **client** or **server**.
+2. **m_socket**:
+   - A pointer to a `QTcpSocket` used by both the server and client. On the server side, it represents the connection to the client, and on the client side, it is used to establish a connection to the server.
 
-### Destructor
+#### **Methods:**
+1. **TCPManager(QObject* parent = nullptr)**:
+   - The constructor of `TCPManager`, which initializes the base class `NetworkManager` and the `m_server` and `m_socket` pointers to `nullptr`.
 
-**Purpose**: Cleans up network resources by stopping connections and safely terminating the network thread.
+2. **~TCPManager()**:
+   - The destructor cleans up by calling `stop()` to disconnect and delete the server or client socket.
 
-### initialize
+3. **initialize(Role role, const QString& address, quint16 port)**:
+   - Initializes the TCP manager by setting the role (`Server` or `Client`), address, and port. It invokes `setupServer()` or `setupClient()` based on the role.
 
-**Purpose**: Sets up the TCP connection based on the role (server or client) and uses the provided IP address and port for the connection.
+4. **setupServer()**:
+   - Creates a `QTcpServer` instance, sets it to listen on the provided address and port, and connects the new connection signal to the `onNewConnection()` slot.
 
-**Challenge**: Handling role-specific initialization dynamically.
-**Solution**: A lambda function is used within `QMetaObject::invokeMethod()` to decide whether to initialize a **server** (`setupServer()`) or **client** (`setupClient()`).
+5. **setupClient()**:
+   - Creates a `QTcpSocket`, connects its signals for connection, error, data reading, and disconnection, and tries to connect to the server using the provided address and port.
 
-### setupServer
+6. **onNewConnection()**:
+   - Called when a new connection is received by the server. It accepts the connection and sets up the `m_socket` with the client’s socket for communication.
 
-**Purpose**: Initializes and starts a **QTcpServer** to listen for incoming connections.
+7. **onReadyRead()**:
+   - Reads data from the socket when available. It converts the incoming data into a `QJsonDocument` and emits the `dataReceived()` signal.
 
-**Challenge**: Handling server startup failures (e.g., port already in use).
-**Solution**: It checks the result of the `listen()` method and, if it fails, emits an `errorOccurred` signal with the error message.
+8. **onDisconnected()**:
+   - Called when the client disconnects. It cleans up the socket and emits the `connectionStatusChanged(false)` signal.
 
-### setupClient
+9. **sendData(const QJsonObject& data)**:
+   - Sends a `QJsonObject` over the established TCP connection. It checks if the socket is in a connected state and writes the data to the socket.
 
-**Purpose**: Establishes a client connection to the specified server address and port.
+10. **stop()**:
+    - Stops the server or client connection by closing the socket and releasing resources.
 
-**Challenge**: Handling connection failures.
-**Solution**: The `QTcpSocket` signals are connected to relevant slots to handle connection, reading, and disconnection events. The connection status is updated via `connectionStatusChanged`.
+---
 
-### onNewConnection
+### **UDPManager**
 
-**Purpose**: Accepts incoming client connections on the server side and sets up necessary event listeners for the connection.
+#### **Fields:**
+1. **m_socket**:
+   - A pointer to a `QUdpSocket`. This is used for the actual UDP communication. It is responsible for sending and receiving data via UDP.
+   
+2. **m_peerAddress**:
+   - A `QHostAddress` object that stores the address of the peer (the other client or server) to which the UDP data will be sent. This field is used on the server side to keep track of the last known client address to send data back to.
 
-**Challenge**: Managing multiple client connections safely.
-**Solution**: The client socket is stored from `nextPendingConnection()` and connected to relevant slots. It only accepts one connection at a time, and resource handling is managed safely.
+3. **m_peerPort**:
+   - A `quint16` value that stores the port number of the peer. It is used alongside **m_peerAddress** to send UDP data back to the correct peer.
 
-### onReadyRead
+#### **Methods:**
+1. **UDPManager(QObject* parent = nullptr)**:
+   - The constructor initializes the base class `NetworkManager` and sets the `m_socket` pointer to `nullptr`.
 
-**Purpose**: Reads incoming data from the socket and emits it as a JSON object.
+2. **~UDPManager()**:
+   - The destructor stops the UDP communication by calling `stop()` to ensure proper cleanup. It also handles thread cleanup (commented out in the code).
 
-**Challenge**: Handling partial or malformed data.
-**Solution**: Converts incoming data to `QJsonDocument`, validates it, and emits valid JSON data.
+3. **initialize(Role role, const QString& address, quint16 port)**:
+   - This method initializes the **UDPManager**. It sets the role (either **Server** or **Client**), address, and port. 
+   - If the role is **Server**, it binds the `m_socket` to the specified address and port (`QHostAddress::Any` for the server to accept connections from any client).
+   - If the role is **Client**, it binds the `m_socket` to an available port to listen for incoming responses.
 
-### onDisconnected
+4. **onReadyRead()**:
+   - This slot is called when data is available for reading from the socket. It checks for pending datagrams and reads them into a `QByteArray`.
+   - If the role is **Server**, it stores the sender's address and port into `m_peerAddress` and `m_peerPort` for future communication.
+   - The received data is then converted into a `QJsonDocument`, and if it's valid, the `dataReceived()` signal is emitted with the data.
 
-**Purpose**: Handles disconnection events by cleaning up resources and notifying the application.
+5. **sendData(const QJsonObject& data)**:
+   - This method sends the data over UDP to the appropriate peer address. The target address and port depend on whether the **UDPManager** is acting as the **Server** or **Client**:
+     - If the **Server**, it sends data to the last known client’s address and port (`m_peerAddress` and `m_peerPort`).
+     - If the **Client**, it sends data to the server's address and port (`m_address` and `m_port`).
+   - The `QJsonObject` is first converted into a `QJsonDocument`, then into a `QByteArray` and sent via `writeDatagram()`.
 
-**Challenge**: Preventing memory leaks when a client disconnects from the server.
-**Solution**: The socket is deleted using `deleteLater()` and set to `nullptr` to avoid dangling pointers.
+6. **stop()**:
+   - This method closes the UDP socket and deletes it to free resources.
 
-### sendData
+### **GameNetworkManager**
 
-**Purpose**: Sends a JSON object over the TCP connection.
+#### **Fields:**
+1. **m_networkManager**:
+   - A pointer to the `NetworkManager` base class. It can either point to `TCPManager` or `UDPManager`, depending on the chosen protocol for communication. It is responsible for sending and receiving data over the network.
 
-**Challenge**: Ensuring data is sent only when the socket is in a connected state.
-**Solution**: The socket's state is checked before writing data, and `flush()` is used to ensure immediate transmission.
+2. **protocol**:
+   - A `QString` that stores the selected communication protocol (`"TCP"` or `"UDP"`). This is used to configure the network manager appropriately.
 
-### stop
+3. **selectedPlayer**:
+   - An integer that holds the ID of the currently selected player in the game. It is used to filter network events and ensure that only relevant data is processed for the selected player.
 
-**Purpose**: Stops the TCP connection by closing the server or disconnecting the client.
+4. **updateSequenceNumber**:
+   - An integer that stores the sequence number used for sending player state updates. This helps to keep track of the updates and prevent the use of outdated state information.
 
-**Challenge**: Handling proper shutdown for both server and client.
-**Solution**: Calls `close()` for the server and `disconnectFromHost()` for the client to ensure a graceful shutdown.
+5. **bombSequenceNumber**:
+   - An integer used specifically for bomb placements. This sequence number ensures that bomb placement messages are sent multiple times (to handle packet loss) and that each bomb placement is uniquely identified.
 
-## UDP
+6. **receivedBombSequenceNumbers**:
+   - A `QSet<int>` that stores the sequence numbers of received bomb placement messages. It is used to track the sequence numbers of the bombs placed by the player and prevent processing the same bomb placement message more than once.
 
-### Constructor
+#### **Methods:**
+1. **GameNetworkManager(int selectedPlayer, const QString& protocol, QObject* parent = nullptr)**:
+   - The constructor initializes the network manager, setting the `selectedPlayer` and `protocol` based on the arguments. It also initializes the `m_networkManager` pointer to `nullptr`.
 
-**Purpose**: Initializes the UDP manager and prepares it for communication.
+2. **setup()**:
+   - This method sets up the **NetworkManager** (either `TCPManager` or `UDPManager`) based on the provided protocol. It also attempts to initialize the network manager, either as a **server** or **client**, and connects relevant signals for network events.
 
-### Destructor
+3. **connectNetworkSignals()**:
+   - This method connects the necessary signals and slots for handling network events, such as connection status changes, data reception, and errors.
 
-**Purpose**: Cleans up resources by stopping the UDP socket and safely deallocating memory.
+4. **onPlayerDied(int playerId)**:
+   - This slot is triggered when a player dies. It sends a message containing the player’s ID over the network using the `m_networkManager` to notify other players about the death.
 
-### initialize
+5. **onPlayerMoved(int playerId, Qt::Key key, bool isPressed)**:
+   - This slot is triggered when a player moves. It sends the movement data (player ID, key press state) to the other players over the network.
 
-**Purpose**: Sets up the UDP socket for communication, either as a server or client, using the provided IP address and port.
+6. **onPlayerPlacedBomb(int playerId)**:
+   - This slot is triggered when a player places a bomb. It sends the bomb placement data over the network. It also adds a sequence number for the bomb placement and sends the message **three times** (in case of packet loss). This ensures that the bomb placement is reliably communicated to the other player.
 
-**Challenge**: Correctly binding the socket for both roles.
-**Solution**: The server binds to `QHostAddress::Any` on the specified port to listen for incoming messages, while the client binds to an available port for responses. Errors trigger an `errorOccurred` signal.
+7. **sendUpdatedPlayerState(int playerId, qreal x, qreal y, int health)**:
+   - This slot sends the updated player state (position and health) over the network. It increments the `updateSequenceNumber` to ensure that each state update has a unique sequence number.
 
-### onReadyRead
+8. **onDataReceived(const QJsonObject& data)**:
+   - This slot is triggered when data is received from the network. It processes the incoming data, extracts the relevant information (e.g., player state updates, bomb placements), and emits the corresponding signals to update the game state.
+   - It also handles **duplicate bomb placement messages** by checking the received sequence number against `receivedBombSequenceNumbers`. If the bomb placement has already been processed, the message is ignored.
 
-**Purpose**: Handles incoming data from the UDP socket, processes it, and emits it as JSON.
+9. **onConnectionStatusChanged(bool connected)**:
+   - This slot is triggered when the connection status changes (either connected or disconnected). It logs the connection status and sends a **connection status message** to the peer when the client is connected.
 
-**Challenge**: Correctly extracting and parsing datagrams.
-**Solution**: It processes incoming datagrams, stores the sender’s address when the server is involved, and converts the data into a `QJsonDocument` before emitting it.
+10. **onErrorOccurred(const QString& message)**:
+    - This slot is triggered when an error occurs in the network manager. It logs the error message for debugging purposes.
 
-### sendData
+11. **messageTypeToString(MESSAGE_TYPE type)**:
+    - This helper function converts a `MESSAGE_TYPE` enum to a corresponding string. It is used when sending messages to convert the message type to a JSON-friendly string.
 
-**Purpose**: Sends a JSON object over UDP.
+12. **messageFieldToString(MESSAGE_FIELD field)**:
+    - This helper function converts a `MESSAGE_FIELD` enum to a corresponding string. It is used when constructing messages to ensure proper JSON field names.
 
-**Challenge**: Ensuring data is sent reliably to the correct target address.
-**Solution**: If acting as a server, it sends data to the last known client. If acting as a client, it sends data to the predefined server address. The target address and port are validated before sending.
+13. **stringToMessageType(const QString& type)**:
+    - This helper function converts a string back into a `MESSAGE_TYPE` enum. It is used when processing incoming messages to interpret the message type.
 
-### stop
+14. **stringToMessageField(const QString& field)**:
+    - This helper function converts a string back into a `MESSAGE_FIELD` enum. It is used when processing incoming messages to interpret the message fields.
 
-**Purpose**: Stops the UDP communication by closing the socket and releasing resources.
+### **Game**
 
-**Challenge**: Ensuring proper cleanup.
-**Solution**: The socket is closed, deleted using `deleteLater()`, and set to `nullptr` to avoid dangling pointers.
+#### **Fields:**
+1. **m_gameView**:
+   - A pointer to the `GameView` class that handles rendering the game's visual elements. It is responsible for displaying the game scene and managing the game window.
 
-## Game
+2. **gameTimer**:
+   - A `QTimer` object used to control the game loop's timing. It triggers periodic updates for game actions and ensures that the game updates at a consistent frame rate.
 
-### Constructor
+3. **mapLoader**:
+   - A pointer to the `MapLoader` class, which is responsible for loading the game map and setting it up in the game environment.
 
-### setupNetwork
+4. **hud**:
+   - A pointer to the `HUD` (Heads-Up Display) class, which manages the display of player health and other UI elements on the game screen.
 
-### onDataReceived
+5. **m_gameNetworkManager**:
+   - A pointer to the `GameNetworkManager` class, which handles all the network communication between the game clients and the server. It is responsible for sending and receiving game state data.
 
-### onConnectionStatusChanged
+6. **protocol**:
+   - A `QString` that specifies the network communication protocol used (either `"TCP"` or `"UDP"`). It determines how the game network manager will communicate with other players.
 
-### errorOccurred
+7. **selectedPlayer**:
+   - An integer that identifies the player who is currently selected to play. This helps in determining which player’s actions and state should be updated.
 
-### connectPlayerSignals (playerDied, playerMoved, playerPlacedBomb)
+8. **players**:
+   - A list of `QPointer<Player>` objects that represent the players in the game. It stores all the players participating in the game.
 
-### update
+9. **FrameRate**:
+   - A constant that defines the frame rate of the game, which determines how often the game state updates per second (30 FPS in this case).
+
+10. **lastReceivedSequenceNumber**:
+    - An integer that tracks the last sequence number of the received player state updates. This is used to handle out-of-order packets and ensure that the most recent game state is applied.
+
+11. **stateUpdateTimer**:
+    - A `QTimer` object that periodically triggers the sending of the player’s state (position and health) over the network. This ensures the game state is continuously updated.
+
+#### **Methods:**
+1. **Game(int selectedPlayer, const QString& protocol, QObject* parent = nullptr)**:
+   - The constructor of the `Game` class. It initializes the game environment, including the view, network manager, timer, and other necessary components. It sets up the selected player and the chosen protocol (TCP or UDP).
+
+2. **start()**:
+   - Starts the game by loading the map and setting the focus on the selected player. It then begins the game loop by starting the `gameTimer`.
+
+3. **addPlayer(Player* player)**:
+   - Adds a new player to the list of players in the game. This method is used to add players to the game environment.
+
+4. **connectGameTimer()**:
+   - Connects the `gameTimer` to the `update()` method, ensuring that the game is updated at the defined frame rate. It also sets the timer's interval to achieve the desired frame rate.
+
+5. **loadMap()**:
+   - Loads the game map using the `MapLoader` class. It reads the map configuration and sets up the game scene with the correct dimensions and assets.
+
+6. **setFocusOnPlayer()**:
+   - This method assigns focus to the selected player. It ensures that the selected player becomes the focused item in the game, allowing the player to control the game.
+
+7. **connectNetworkSignals()**:
+   - Connects the necessary signals from `GameNetworkManager` to the appropriate slots in the `Game` class. These signals include player movements, bomb placements, player deaths, and state updates.
+
+8. **connectPlayerSignals(QPointer<Player> player)**:
+   - Connects the signals from the **Player** class to the relevant slots in the `GameNetworkManager`. These include signals like `playerDied`, `playerMoved`, and `playerPlacedBomb`.
+
+9. **gameOver(int diedPlayerId)**:
+   - This method handles the game-over scenario. It identifies the winner based on the player who survived, displays a message box announcing the winner, and then quits the game after a brief delay.
+
+10. **getPlayerById(int playerId)**:
+    - This method returns a `QPointer<Player>` for the player with the specified `playerId`. It is used to look up a player by their ID for updating their state or handling their actions.
+
+11. **update()**:
+    - This method is called periodically by the `gameTimer`. It updates the game by checking the player’s movement and updating the game view. It also updates the health UI through the `HUD` class.
+
+12. **handlePlayerDied(int playerId)**:
+    - This method is called when a player dies. It updates the player's state to show the death animation and triggers the game over logic if required.
+
+13. **handlePlayerMoved(int playerId, int key, bool isPressed)**:
+    - This method is called when a player moves. It updates the player’s movement state and applies the changes to their position in the game.
+
+14. **handlePlayerPlacedBomb(int playerId)**:
+    - This method is called when a player places a bomb. It triggers the appropriate bomb placement logic in the game and sends the bomb placement information over the network.
+
+15. **updatePlayerState(int playerId, qreal x, qreal y, int health)**:
+    - This method updates the state of a specific player by setting their position (`x`, `y`) and health. It is used when the game receives state updates from the network.
+
+16. **handleStateUpdateReceived(int sequenceNumber)**:
+    - This method is called when a state update is received from the network. It checks whether the received state update has a higher sequence number than the last one, ensuring that outdated state updates are ignored.
+
+17. **emitPlayerState()**:
+    - This method is triggered by the `stateUpdateTimer`. It emits a signal with the current player state (position and health) for sending over the network to other players.
 
 ## Questions
 
