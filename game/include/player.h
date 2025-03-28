@@ -23,6 +23,7 @@ public:
     void placeBomb();
     void die();
     void updateDirectionState(int key, bool isPressed);
+    void setHealth(int health);
 
 public slots:
     void updateMovement();

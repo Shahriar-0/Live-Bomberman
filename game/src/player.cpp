@@ -136,3 +136,10 @@ void Player::placeBomb() {
     }
     scene()->addItem(bomb);
 }
+
+void Player::setHealth(int health) {
+    m_health = health;
+    if (m_health <= 0 && !m_isDead) {
+        die();
+    }
+}
