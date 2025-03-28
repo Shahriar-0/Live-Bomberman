@@ -75,6 +75,20 @@ void GameNetworkManager::onPlayerPlacedBomb(int playerId) {
     }
 }
 
+void GameNetworkManager::sendUpdatedPlayerState(int playerId, qreal x, qreal y, int health) {
+    QJsonObject stateUpdate;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerStateUpdate);
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::SequenceNumber)] = updateSequenceNumber++;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::PlayerId)] = playerId;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::X)] = x;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::Y)] = y;
+    stateUpdate[messageFieldToString(MESSAGE_FIELD::Health)] = health;
+
+    emit stateUpdateReceived(updateSequenceNumber);
+    m_networkManager->sendData(stateUpdate);
+}
+
+
 void GameNetworkManager::sendPlayerStateUpdate() {
     QJsonObject stateUpdate;
     stateUpdate[messageFieldToString(MESSAGE_FIELD::Type)] = messageTypeToString(MESSAGE_TYPE::PlayerStateUpdate);

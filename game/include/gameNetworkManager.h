@@ -11,6 +11,7 @@
 
 class GameNetworkManager : public QObject {
     Q_OBJECT
+
 public:
     explicit GameNetworkManager(int selectedPlayer, const QString& protocol, QObject* parent = nullptr);
     void setup();
@@ -19,19 +20,20 @@ signals:
     void playerDied(int playerId);
     void playerMoved(int playerId, int key, bool isPressed);
     void playerPlacedBomb(int playerId);
-    void playerStateUpdated(int playerId, qreal x, qreal y, int health);  // New signal
-    void stateUpdateReceived(int sequenceNumber);                        // Signal for state update received
+    void playerStateUpdated(int playerId, qreal x, qreal y, int health);
+    void stateUpdateReceived(int sequenceNumber);
 
 public slots:
     void onPlayerDied(int playerId);
     void onPlayerMoved(int playerId, Qt::Key key, bool isPressed);
     void onPlayerPlacedBomb(int playerId);
+    void sendUpdatedPlayerState(int playerId, qreal x, qreal y, int health);
 
 private slots:
     void onDataReceived(const QJsonObject& data);
     void onConnectionStatusChanged(bool connected);
     void onErrorOccurred(const QString& message);
-    void sendPlayerStateUpdate();  // Send player state updates
+    void sendPlayerStateUpdate();
 
 private:
     void connectNetworkSignals();
@@ -66,8 +68,8 @@ private:
     QString protocol;
     int selectedPlayer;
 
-    QTimer* updateTimer;                // Timer for periodic updates
-    int updateSequenceNumber = 0;       // Outgoing sequence number
+    QTimer* updateTimer;
+    int updateSequenceNumber = 0;
 };
 
 #endif // GAMENETWORKMANAGER_H
