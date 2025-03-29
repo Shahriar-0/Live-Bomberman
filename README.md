@@ -5,17 +5,12 @@ This project serves as a practical assignment for the Computer Networks course. 
 ## Table of Contents
 
 - [Overview of Classes and Their Communication](#overview-of-classes-and-their-communication)
-  - [NetworkManager (Base Class)](#networkmanager-base-class)
+  - [NetworkManager](#networkmanager-base-class)
   - [TCPManager](#tcpmanager)
   - [UDPManager](#udpmanager)
   - [GameNetworkManager](#gamenetworkmanager)
   - [Player](#player)
   - [Game](#game)
-- [Communication Flow Between Classes](#communication-flow-between-classes)
-  - [Player Class](#player-class)
-  - [GameNetworkManager Class](#gamenetworkmanager-class)
-  - [Game Class](#game-class)
-  - [Network Managers (TCPManager and UDPManager)](#network-managers-tcpmanager-and-udpmanager)
 - [TCPManager](#tcpmanager)
   - [Fields](#fields)
   - [Methods](#methods)
@@ -38,7 +33,7 @@ This project serves as a practical assignment for the Computer Networks course. 
 
 We added the following classes into the existing code to implement networking features:
 
-1. **NetworkManager (Base Class)**  
+1. **NetworkManager**  
    This class offers a shared interface for basic network operations like sending and receiving data, managing errors, and handling connections. Both **TCPManager** and **UDPManager** extend this class to add their protocol-specific features.
 
 2. **TCPManager**
@@ -80,16 +75,17 @@ We added the following classes into the existing code to implement networking fe
 
 #### **Methods:**
 1. **TCPManager(QObject* parent = nullptr)**:
-   - The constructor of `TCPManager`, which initializes the base class `NetworkManager` and the `m_server` and `m_socket` pointers to `nullptr`.
+   - Constructor
 
 2. **~TCPManager()**:
    - The destructor cleans up by calling `stop()` to disconnect and delete the server or client socket.
 
 3. **initialize(Role role, const QString& address, quint16 port)**:
    - Initializes the TCP manager by setting the role, address, and port. It invokes `setupServer()` or `setupClient()` based on the role.
+   - The first player that joins the game will be server and the other one is client.
 
 4. **setupServer()**:
-   - Creates a `QTcpServer` instance, sets it to listen on the provided address and port, and connects the new connection signal to the `onNewConnection()` slot.
+   - Creates a `QTcpServer` instance, sets it to listen on the address and port, and connects the new connection signal to the `onNewConnection()` slot.
 
 5. **setupClient()**:
    - Creates a `QTcpSocket`, connects its signals for connection, error, data reading, and disconnection, and tries to connect to the server using the provided address and port.
@@ -125,7 +121,7 @@ We added the following classes into the existing code to implement networking fe
 
 #### **Methods:**
 1. **UDPManager(QObject* parent = nullptr)**:
-   - The constructor initializes the base class `NetworkManager` and sets the `m_socket` pointer to `nullptr`.
+   - Constructor
 
 2. **~UDPManager()**:
    - The destructor stops the UDP communication by calling `stop()` to ensure proper cleanup.
@@ -153,26 +149,29 @@ We added the following classes into the existing code to implement networking fe
 
 #### **Fields:**
 1. **m_networkManager**:
-   - A pointer to the `NetworkManager` base class that is responsible for sending and receiving data over the network.
+   - Pointer to network manager for sending messages over the network.
 
 2. **protocol**:
-   - The selected communication protocol (`"TCP"` or `"UDP"`).
+   - The selected protocol.
 
 3. **selectedPlayer**:
-   - ID of the currently selected player in the game. It is used to filter network events and ensure that only relevant data is processed for the selected player.
+   - Player Id.
 
 4. **updateSequenceNumber**:
-   - The sequence number used for sending player state updates. This helps to keep track of the updates and prevent the use of outdated state information.
+   - The sequence number used for sending player state updates. The state updates are sent in fixed intervals to avoid divergense in game state caused by packet loss.
 
 5. **bombSequenceNumber**:
-   - An integer used specifically for bomb placements. This sequence number ensures that bomb placement messages are sent multiple times (to handle packet loss) and that each bomb placement is uniquely identified.
+   - The mechanism for handling packet loss for bomb placements is to send the message of a placement multiple times so we assign a unique seq number for each placement(all of its messages have the same seq number) so that each bomb effects the game state only once.
 
 6. **receivedBombSequenceNumbers**:
-   - A set that stores the sequence numbers of received bomb placement messages. It is used to track the sequence numbers of the bombs placed by the other player and prevent processing the same bomb placement message more than once.
+   - A set to check if the received bomb sequence number is new or has been placed before.
+
+7. **lastReceivedSequenceNumber**:
+    - An integer that tracks the last sequence number of the received player state updates. This is used to handle out-of-order packets and ensure that the most recent game state is applied.
 
 #### **Methods:**
 1. **GameNetworkManager(int selectedPlayer, const QString& protocol, QObject* parent = nullptr)**:
-   - The constructor initializes the network manager, setting the `selectedPlayer` and `protocol` based on the arguments. It also initializes the `m_networkManager` pointer to `nullptr`.
+   - Constructor
 
 2. **setup()**:
    - This method sets up the **NetworkManager** based on the provided protocol. It also attempts to initialize the network manager, either as a **server** or **client**, and connects relevant signals for network events.
@@ -184,23 +183,23 @@ We added the following classes into the existing code to implement networking fe
    - This slot is triggered when a player dies. It sends a message containing the player’s ID over the network using the `m_networkManager` to notify the other player about the death.
 
 5. **onPlayerMoved(int playerId, Qt::Key key, bool isPressed)**:
-   - This slot is triggered when a player moves. It sends the movement data (player ID, key press state) to the other player over the network.
+   - This slot is triggered when a player moves. It sends the movement data to the other player over the network.
 
 6. **onPlayerPlacedBomb(int playerId)**:
-   - This slot is triggered when a player places a bomb. It sends the bomb placement data over the network. It also adds a sequence number for the bomb placement and sends the message **three times** (in case of packet loss). This ensures that the bomb placement is reliably communicated to the other player.
+   - This slot is triggered when a player places a bomb. It sends the bomb placement data over the network. It also adds a sequence number for the bomb placement and sends the message **three times**. This ensures that the bomb placement is reliably communicated to the other player.
 
 7. **sendUpdatedPlayerState(int playerId, qreal x, qreal y, int health)**:
-   - This slot sends the updated player state (position and health) over the network. It increments the `updateSequenceNumber` to ensure that each state update has a unique sequence number.
+   - This slot sends the updated player state over the network. It increments the `updateSequenceNumber` to ensure that each state update has a unique sequence number.
 
 8. **onDataReceived(const QJsonObject& data)**:
    - This slot is triggered when data is received from the network. It processes the incoming data, extracts the relevant information and emits the corresponding signals to update the game state.
-   - It also handles **duplicate bomb placement messages** by checking the received sequence number against `receivedBombSequenceNumbers`. If the bomb placement has already been processed, the message is ignored.
+   - It handles duplicate bomb placement messages by checking the received sequence number against `receivedBombSequenceNumbers`. If the bomb placement has already been processed, the message is ignored. It also handles sequence numbers for state updates and ignored outdated states that are received.
 
 9. **onConnectionStatusChanged(bool connected)**:
-   - This slot is triggered when the connection status changes. It logs the connection status and sends a **connection status message** to the peer when the client is connected.
+   - This slot is triggered when the connection status changes.
 
 10. **onErrorOccurred(const QString& message)**:
-    - This slot is triggered when an error occurs in the network manager. It logs the error message for debugging purposes.
+    - This slot is triggered when an error occurs in the network manager.
 
 11. **messageTypeToString(MESSAGE_TYPE type)**:
     - Helper function
@@ -219,13 +218,10 @@ We added the following classes into the existing code to implement networking fe
 #### **Fields:**
 
 1. **m_gameNetworkManager**:
-   - It is responsible for sending and receiving game state data.
+   - Handles networking related stuff in the game.
 
-2. **lastReceivedSequenceNumber**:
-    - An integer that tracks the last sequence number of the received player state updates. This is used to handle out-of-order packets and ensure that the most recent game state is applied.
-
-3. **stateUpdateTimer**:
-    - A `QTimer` object that periodically triggers the sending of the player’s state over the network. This ensures the game state is continuously updated.
+2. **stateUpdateTimer**:
+    - This timer periodically triggers the sending of the player’s state over the network. This ensures the game state is continuously updated.
 
 #### **Methods:**
 1. **Game(int selectedPlayer, const QString& protocol, QObject* parent = nullptr)**:
@@ -241,24 +237,21 @@ We added the following classes into the existing code to implement networking fe
    - Connects the signals from the **Player** class to the relevant slots in the `GameNetworkManager`. These include signals like `playerDied`, `playerMoved`, and `playerPlacedBomb`.
 
 5. **gameOver(int diedPlayerId)**:
-   - This method handles the game-over scenario. It identifies the winner based on the player who survived, displays a message box announcing the winner, and then quits the game after a brief delay.
+   - This method handles the game-over scenario. It identifies the winner based on the player who survived, displays a message box announcing the winner, and then quits the game.
 
 6. **handlePlayerDied(int playerId)**:
-    - This method is called when a player dies. It updates the player's state to show the death animation and triggers the game over logic if required.
+    - Slot to handle playerDied.
 
 7. **handlePlayerMoved(int playerId, int key, bool isPressed)**:
-    - This method is called when a player moves. It updates the player’s movement state and applies the changes to their position in the game.
+    - Slot to handle playerMoved.
 
 8. **handlePlayerPlacedBomb(int playerId)**:
-    - This method is called when a player places a bomb. It triggers the appropriate bomb placement logic in the game and sends the bomb placement information over the network.
+    - Slot to handle playerPlacedBomb.
 
 9. **updatePlayerState(int playerId, qreal x, qreal y, int health)**:
-    - This method updates the state of a specific player by setting their position (`x`, `y`) and health. It is used when the game receives state updates from the network.
+    - It is used when the game receives state updates from the network. The other player sends their position and health and here their position in the current player's view gets updated.
 
-10. **handleStateUpdateReceived(int sequenceNumber)**:
-    - This method is called when a state update is received from the network. It checks whether the received state update has a higher sequence number than the last one, ensuring that outdated state updates are ignored.
-
-11. **emitPlayerState()**:
+10. **emitPlayerState()**:
     - This method is triggered by the `stateUpdateTimer`. It emits a signal with the current player state for sending over the network to other players.
 
 ## Questions
