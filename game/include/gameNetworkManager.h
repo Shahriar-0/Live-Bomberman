@@ -71,6 +71,8 @@ private:
     int bombSequenceNumber = 0;
 
     QSet<int> receivedBombSequenceNumbers;
+    int lastReceivedSequenceNumber = -1;
+
 };
 
 #endif // GAMENETWORKMANAGER_H

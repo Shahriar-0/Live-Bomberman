@@ -92,13 +92,12 @@ void GameNetworkManager::onDataReceived(const QJsonObject& data) {
     MESSAGE_TYPE messageType = stringToMessageType(type);
 
     int seqNum = data[messageFieldToString(MESSAGE_FIELD::SequenceNumber)].toInt();
-    
-    if (messageType == MESSAGE_TYPE::PlayerPlacedBomb && receivedBombSequenceNumbers.contains(seqNum)) {
-        qDebug() << "Duplicate bomb placement message received. Ignoring.";
-        return;
-    }
 
     if (messageType == MESSAGE_TYPE::PlayerPlacedBomb) {
+        if (receivedBombSequenceNumbers.contains(seqNum)) {
+            qDebug() << "Duplicate bomb placement message received. Ignoring.";
+            return;
+        }
         receivedBombSequenceNumbers.insert(seqNum);
     }
 
@@ -106,22 +105,32 @@ void GameNetworkManager::onDataReceived(const QJsonObject& data) {
     case MESSAGE_TYPE::PlayerDied:
         emit playerDied(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt());
         break;
+        
     case MESSAGE_TYPE::PlayerMoved:
         emit playerMoved(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt(),
                          data[messageFieldToString(MESSAGE_FIELD::Key)].toInt(),
                          data[messageFieldToString(MESSAGE_FIELD::IsPressed)].toBool());
         break;
+
     case MESSAGE_TYPE::PlayerPlacedBomb:
         emit playerPlacedBomb(data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt());
         break;
+
     case MESSAGE_TYPE::PlayerStateUpdate:
-        emit playerStateUpdated(
-            data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt(),
-            data[messageFieldToString(MESSAGE_FIELD::X)].toDouble(),
-            data[messageFieldToString(MESSAGE_FIELD::Y)].toDouble(),
-            data[messageFieldToString(MESSAGE_FIELD::Health)].toInt()
-        );
+        if (seqNum > lastReceivedSequenceNumber) {
+            lastReceivedSequenceNumber = seqNum;
+            emit playerStateUpdated(
+                data[messageFieldToString(MESSAGE_FIELD::PlayerId)].toInt(),
+                data[messageFieldToString(MESSAGE_FIELD::X)].toDouble(),
+                data[messageFieldToString(MESSAGE_FIELD::Y)].toDouble(),
+                data[messageFieldToString(MESSAGE_FIELD::Health)].toInt()
+            );
+            emit stateUpdateReceived(seqNum);
+        } else {
+            qDebug() << "Ignored outdated update. Current seq:" << lastReceivedSequenceNumber;
+        }
         break;
+
     default:
         break;
     }

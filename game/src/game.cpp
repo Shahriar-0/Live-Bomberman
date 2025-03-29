@@ -86,7 +86,7 @@ void Game::connectNetworkSignals() {
     connect(m_gameNetworkManager, &GameNetworkManager::playerMoved, this, &Game::handlePlayerMoved);
     connect(m_gameNetworkManager, &GameNetworkManager::playerPlacedBomb, this, &Game::handlePlayerPlacedBomb);
     connect(m_gameNetworkManager, &GameNetworkManager::playerStateUpdated, this, &Game::updatePlayerState);
-    connect(m_gameNetworkManager, &GameNetworkManager::stateUpdateReceived, this, &Game::handleStateUpdateReceived);
+
 
     connect(this, &Game::playerStateReady, m_gameNetworkManager, &GameNetworkManager::sendUpdatedPlayerState);
 }
@@ -160,16 +160,6 @@ void Game::updatePlayerState(int playerId, qreal x, qreal y, int health) {
     if (player) {
         player->setPos(x, y);
         player->setHealth(health);
-    }
-}
-
-void Game::handleStateUpdateReceived(int sequenceNumber) {
-    if (sequenceNumber > lastReceivedSequenceNumber) {
-        lastReceivedSequenceNumber = sequenceNumber;
-        qDebug() << "Updated to sequence number:" << sequenceNumber;
-    }
-    else {
-        qDebug() << "Ignored outdated update. Current seq:" << lastReceivedSequenceNumber;
     }
 }
 

@@ -35,7 +35,6 @@ signals:
 public slots:
     void update();
     void updatePlayerState(int playerId, qreal x, qreal y, int health);
-    void handleStateUpdateReceived(int sequenceNumber);
 
 private slots:
     void handlePlayerDied(int playerId);
@@ -65,7 +64,6 @@ private:
 
     QList<QPointer<Player>> players;
     static constexpr int FrameRate = 30;
-    int lastReceivedSequenceNumber = -1;
 
     QTimer* stateUpdateTimer;
 };
