@@ -36,46 +36,38 @@ This project serves as a practical assignment for the Computer Networks course. 
 
 ## Overview of Classes and Their Communication
 
-In our implementation, we created several key classes that work together to facilitate communication and gameplay in the game.
+We added the following classes into the existing code to implement networking features:
 
-1. **NetworkManager (Base Class)**
-   - This class serves as the base class for both **TCPManager** and **UDPManager**. It provides a common interface for handling network communication, such as sending and receiving data, error handling, and connection management. Both the **TCPManager** and **UDPManager** inherit from this class to implement protocol-specific functionality.
+1. **NetworkManager (Base Class)**  
+   This class offers a shared interface for basic network operations like sending and receiving data, managing errors, and handling connections. Both **TCPManager** and **UDPManager** extend this class to add their protocol-specific features.
 
 2. **TCPManager**
    - This class manages the TCP connection and communication for the game. It is responsible for establishing the server-client connection, handling incoming and outgoing messages, and managing connection events.
 
 3. **UDPManager**
-   - This class is responsible for handling the **UDP** communication in the game. UDP is used to send quick, real-time data without the overhead of connection management, which is ideal for fast-paced games.
-   - **UDPManager** uses **QUdpSocket** to send and receive data packets between the server and the client.
+   - This class is responsible for handling the **UDP** communication in the game.
 
 4. **GameNetworkManager**
-   - This class is the central hub for the game's network communication. It interacts with the **NetworkManager** (either **TCPManager** or **UDPManager**) to send and receive data, such as player movements, bomb placements, and game state updates. 
-   - **GameNetworkManager** acts as the bridge between the network layer and the game layer. It listens for signals from the **Player** class and then sends appropriate data to the network manager. It also handles incoming data and updates the game state accordingly by emitting signals for the **Game** class to process.
-   - It communicates with the **Game** class via **signals and slots**. When network events occur , **GameNetworkManager** emits signals, which the **Game** class listens to in order to update the game state.
+   - This is the main class for handling the game's network communication. It uses the **NetworkManager**, which can be TCPManager or UDPManager, to send and receive data, such as player movements, bomb placements, and game state updates. 
+
+   - It acts as the bridge between the network layer and the game layer and its purpose is to isolate the networking stuff from game logic and adhere single responsibility principle. It listens for signals from the Player class and then sends appropriate data to the network manager. It also handles incoming data and updates the game state by emitting signals for the game class. The parts that are related to network, like checking duplicated sequence numbers, are done in this class but the game logic is handled in Game.
 
 5. **Player**
-   - The **Player** class manages the player's **state** and **actions**. We **extended** this class by adding new signals to facilitate network communication. These signals notify the game when important actions occur:
-     - `playerMoved` when the player moves, to update the other player’s position over the network.
-     - `playerDied` when the player dies, allowing the game to notify other players about the player's death.
-     - `playerPlacedBomb` when the player places a bomb, ensuring that the action is transmitted to the other player in a multiplayer game.
+   - We **extended** this class by adding signals for network communication. These signals notify the game and its network manager when below actions occur:
+     - `playerMoved`
+     - `playerDied`
+     - `playerPlacedBomb`
    
-   - **Communication**: In the updated version, the **Player** class **emits signals** for the actions that occur within the game. These signals are connected to **GameNetworkManager**, which manages the network communication. When a player moves, the **playerMoved** signal is emitted, and **GameNetworkManager** sends the movement data to the other player over the network (via **UDP** or **TCP**). Similarly, other player actions, like placing bombs or dying, trigger the corresponding signals, ensuring that the state is updated across all clients in real-time.
+   These signals are connected to **GameNetworkManager**. When a player moves, the **playerMoved** signal is emitted, and **GameNetworkManager** sends the movement data to the other player over the network.
 
 6. **Game**
-   - This class manages the main game loop and logic. It creates the game environment, handles player actions, and updates the game state. The **Game** class integrates with **GameNetworkManager** to synchronize the game state between multiple players.
-   - This class processes input from the player and updates the game world. It also listens for signals from **GameNetworkManager** to apply network updates such as player movement, health changes, or game-over.
+   - The **Game** class integrates with **GameNetworkManager** to synchronize the game state between multiple players.
+   - This class processes input from the player and updates the game world. It listens for signals from **GameNetworkManager** to apply network updates such as player movement, health changes, or game-over.
+   - The network related logic is moved to a new thread to prevent it from introducing lag to the game.
 
 ---
 
-### **Communication Flow Between Classes:**
-
-1. **Player Class**: The player performs actions such as movement, placing bombs, or dying. These actions trigger signals like `playerMoved`, `playerPlacedBomb`, or `playerDied`.
-   
-2. **GameNetworkManager Class**: Upon receiving a signal from the **Player** class, **GameNetworkManager** processes the action (such as movement or bomb placement) and sends the data over the network to the other player using **TCPManager** or **UDPManager**.
-
-3. **Game Class**: **GameNetworkManager** also listens for incoming data about the other player's actions (such as movements or bomb placements) from the network. When this data is received, it triggers signals that the **Game** class listens for to update the game state. For example, the game updates the other player's position or places a bomb at the correct coordinates.
-
-4. **Network Managers (TCPManager and UDPManager)**: These classes handle the actual network communication. They listen for incoming data, parse the messages, and send them to the appropriate destination. They also handle connection management (e.g., establishing and maintaining connections for **TCP**, or managing the sending/receiving of packets for **UDP**).
+## **Class Explanation**
 
 ### **TCPManager:**
 
@@ -273,13 +265,21 @@ In our implementation, we created several key classes that work together to faci
 
 ### 1. What is a socket, and what role does it play in network communication?
 
-A **socket** is an endpoint for communication between two machines over a network. It allows applications to send and receive data using protocols such as **TCP** and **UDP**. In this project, sockets are used to establish communication between game clients and the server, facilitating real-time multiplayer interactions.
+A **socket** is an endpoint for communication between two machines over a network. It allows applications to send and receive data using protocols such as **TCP** and **UDP**. In this project, sockets are used to establish communication between game clients and the server, so that the two players can interact in real-time.
 
 ### 2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?
 
-- **TCP** (Transmission Control Protocol) is **connection-oriented**. It guarantees ordered, error-free delivery using acknowledgments and retransmissions, but it comes with higher overhead, making it slower. It's ideal for applications requiring reliable communication (e.g., web browsing, file transfers).
+- **TCP** is **connection-oriented**. It guarantees ordered, error-free delivery using acknowledgments and retransmissions, but it comes with higher overhead, making it slower. It's ideal for applications requiring reliable communication and when the order and delivery of the data are more important than transmission speed.
 
-- **UDP** (User Datagram Protocol) is **connection-less** and doesn't guarantee delivery or order. It is faster and has lower overhead but sacrifices reliability. UDP is ideal for real-time applications like gaming, where speed is more important than perfect delivery.
+- Since **UDP** is **connection-less**, it doesn’t guarantee packet delivery or maintain order—but that’s exactly what makes it **faster** and **lighter** than TCP. For real-time games, speed matters more than perfect reliability (a few missed position updates won’t ruin the game, but lag will).  
+
+To handle UDP’s shortcomings, these are some common mechanisms:  
+- **Sequence Numbers**: Packets are tagged with incrementing IDs so the receiver can detect lost or out-of-order data.  
+- **Acknowledgements**: It can be used only for critical events to ensure delivery.
+- **Interpolation/Prediction**: For example in a game, if a packet is lost, the game briefly predicts missing player movements until the next update arrives.  
+- **Redundancy**: Sending the same data in multiple packets to increase the probability of its delivery
+
+- In this game we used a combination of sequence numbers and redundancy to handle lost packets.
 
 ### 3. In what situations is TCP a better choice than UDP, and vice versa?
 
