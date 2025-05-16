@@ -2,38 +2,39 @@
 
 This project serves as a practical assignment for the Computer Networks course. The objective is to develop a 2-player game similar to Bomberman using the Qt framework and implement both UDP and TCP protocols for communication between the game clients and the server. This hands-on project aims to help us understand how real-time network communication works in multiplayer games and how different protocols can be used to achieve communication goals in gaming environments.
 
+<p align="center">
+  <img src="result.png" />
+</p>
+
 ## Table of Contents
 
-- [Overview of Classes and Their Communication](#overview-of-classes-and-their-communication)
-  - [NetworkManager](#networkmanager-base-class)
-  - [TCPManager](#tcpmanager)
-  - [UDPManager](#udpmanager)
-  - [GameNetworkManager](#gamenetworkmanager)
-  - [Player](#player)
-  - [Game](#game)
-- [TCPManager](#tcpmanager)
-  - [Fields](#fields)
-  - [Methods](#methods)
-- [UDPManager](#udpmanager)
-  - [Fields](#fields-1)
-  - [Methods](#methods-1)
-- [GameNetworkManager](#gamenetworkmanager-1)
-  - [Fields](#fields-2)
-  - [Methods](#methods-2)
-- [Game](#game-1)
-  - [Fields](#fields-3)
-  - [Methods](#methods-3)
-- [Questions](#questions)
-  - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
-  - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
-  - [3. In what situations is TCP a better choice than UDP, and vice versa?](#3-in-what-situations-is-tcp-a-better-choice-than-udp-and-vice-versa)
-  - [4. Why is UDP a common choice for multiplayer games like Bomberman?](#4-why-is-udp-a-common-choice-for-multiplayer-games-like-bomberman)
+- [CN CA1 - Bomberman Game with Socket Programming in QT](#cn-ca1---bomberman-game-with-socket-programming-in-qt)
+  - [Table of Contents](#table-of-contents)
+  - [Overview of Classes and Their Communication](#overview-of-classes-and-their-communication)
+  - [**Class Explanation**](#class-explanation)
+    - [**TCPManager:**](#tcpmanager)
+      - [**Fields:**](#fields)
+      - [**Methods:**](#methods)
+    - [**UDPManager**](#udpmanager)
+      - [**Fields:**](#fields-1)
+      - [**Methods:**](#methods-1)
+    - [**GameNetworkManager**](#gamenetworkmanager)
+      - [**Fields:**](#fields-2)
+      - [**Methods:**](#methods-2)
+    - [**Game**](#game)
+      - [**Fields:**](#fields-3)
+      - [**Methods:**](#methods-3)
+  - [Questions](#questions)
+    - [1. What is a socket, and what role does it play in network communication?](#1-what-is-a-socket-and-what-role-does-it-play-in-network-communication)
+    - [2. What are the differences between TCP and UDP in terms of connection management and data delivery guarantees?](#2-what-are-the-differences-between-tcp-and-udp-in-terms-of-connection-management-and-data-delivery-guarantees)
+    - [3. In what situations is TCP a better choice than UDP, and vice versa?](#3-in-what-situations-is-tcp-a-better-choice-than-udp-and-vice-versa)
+    - [4. Why is UDP a common choice for multiplayer games like Bomberman?](#4-why-is-udp-a-common-choice-for-multiplayer-games-like-bomberman)
 
 ## Overview of Classes and Their Communication
 
 We added the following classes into the existing code to implement networking features:
 
-1. **NetworkManager**  
+1. **NetworkManager**
    This class offers a shared interface for basic network operations like sending and receiving data, managing errors, and handling connections. Both **TCPManager** and **UDPManager** extend this class to add their protocol-specific features.
 
 2. **TCPManager**
@@ -43,7 +44,7 @@ We added the following classes into the existing code to implement networking fe
    - This class is responsible for handling the **UDP** communication in the game.
 
 4. **GameNetworkManager**
-   - This is the main class for handling the game's network communication. It uses the **NetworkManager**, which can be TCPManager or UDPManager, to send and receive data, such as player movements, bomb placements, and game state updates. 
+   - This is the main class for handling the game's network communication. It uses the **NetworkManager**, which can be TCPManager or UDPManager, to send and receive data, such as player movements, bomb placements, and game state updates.
 
    - It acts as the bridge between the network layer and the game layer and its purpose is to isolate the networking stuff from game logic and adhere single responsibility principle. It listens for signals from the Player class and then sends appropriate data to the network manager. It also handles incoming data and updates the game state by emitting signals for the game class. The parts that are related to network, like checking duplicated sequence numbers, are done in this class but the game logic is handled in Game.
 
@@ -52,7 +53,7 @@ We added the following classes into the existing code to implement networking fe
      - `playerMoved`
      - `playerDied`
      - `playerPlacedBomb`
-   
+
    These signals are connected to **GameNetworkManager**. When a player moves, the **playerMoved** signal is emitted, and **GameNetworkManager** sends the movement data to the other player over the network.
 
 6. **Game**
@@ -112,7 +113,7 @@ We added the following classes into the existing code to implement networking fe
 #### **Fields:**
 1. **m_socket**:
    - A pointer to a `QUdpSocket`. This is used for the actual UDP communication. It is responsible for sending and receiving data via UDP.
-   
+
 2. **m_peerAddress**:
    - A `QHostAddress` object that stores the address of the peer to which the UDP data will be sent. This field is used on the server side to keep track of the last known client address to send data back to.
 
@@ -127,7 +128,7 @@ We added the following classes into the existing code to implement networking fe
    - The destructor stops the UDP communication by calling `stop()` to ensure proper cleanup.
 
 3. **initialize(Role role, const QString& address, quint16 port)**:
-   - This method initializes the **UDPManager**. It sets the role, address, and port. 
+   - This method initializes the **UDPManager**. It sets the role, address, and port.
    - If the role is **Server**, it binds the `m_socket` to the specified address and port (`QHostAddress::Any` for the server to accept connections from any client).
    - If the role is **Client**, it binds the `m_socket` to an available port to listen for incoming responses.
 
@@ -264,12 +265,12 @@ A **socket** is an endpoint for communication between two machines over a networ
 
 - **TCP** is **connection-oriented**. It guarantees ordered, error-free delivery using acknowledgments and retransmissions, but it comes with higher overhead, making it slower. It's ideal for applications requiring reliable communication and when the order and delivery of the data are more important than transmission speed.
 
-- Since **UDP** is **connection-less**, it doesn’t guarantee packet delivery or maintain order—but that’s exactly what makes it **faster** and **lighter** than TCP. For real-time games, speed matters more than perfect reliability (a few missed position updates won’t ruin the game, but lag will).  
+- Since **UDP** is **connection-less**, it doesn’t guarantee packet delivery or maintain order—but that’s exactly what makes it **faster** and **lighter** than TCP. For real-time games, speed matters more than perfect reliability (a few missed position updates won’t ruin the game, but lag will).
 
-To handle UDP’s shortcomings, these are some common mechanisms:  
-- **Sequence Numbers**: Packets are tagged with incrementing IDs so the receiver can detect lost or out-of-order data.  
+To handle UDP’s shortcomings, these are some common mechanisms:
+- **Sequence Numbers**: Packets are tagged with incrementing IDs so the receiver can detect lost or out-of-order data.
 - **Acknowledgements**: It can be used only for critical events to ensure delivery.
-- **Interpolation/Prediction**: For example in a game, if a packet is lost, the game briefly predicts missing player movements until the next update arrives.  
+- **Interpolation/Prediction**: For example in a game, if a packet is lost, the game briefly predicts missing player movements until the next update arrives.
 - **Redundancy**: Sending the same data in multiple packets to increase the probability of its delivery
 
 - In this game we used a combination of sequence numbers and redundancy to handle lost packets.
